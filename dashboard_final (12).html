@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Gerencial — Contrato 1892 | AFAPLAN</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --white: #ffffff;
+  --bg: #f7f8fa;
+  --border: #e2e6eb;
+  --text: #1a2332;
+  --text-2: #5a6a7a;
+  --text-3: #8a9aaa;
+  --green: #15803d;
+  --green-bg: #f0fdf4;
+  --green-border: #bbf7d0;
+  --red: #b91c1c;
+  --red-bg: #fef2f2;
+  --red-border: #fecaca;
+  --blue: #1d4ed8;
+  --blue-bg: #eff6ff;
+  --blue-border: #bfdbfe;
+  --accent: #0f4c8a;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── TOP NAV ─── */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px 14px 0;
+  margin-right: 28px;
+  border-right: 1px solid var(--border);
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.brand-text {
+  line-height: 1.2;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.brand-sub {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--mono);
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  flex: 1;
+}
+
+.nav-tab {
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.nav-right {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  padding: 4px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+/* ─── PAGES ─── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── MAIN ─── */
+.main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+/* ─── SECTION TITLE ─── */
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 14px;
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title:first-child { margin-top: 0; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ─── CARDS GRID ─── */
+.cards-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.cards-4 { grid-template-columns: repeat(4, 1fr); }
+.cards-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-2 { grid-template-columns: repeat(2, 1fr); }
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.card-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--mono);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.card.green {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+}
+.card.green .card-value { color: var(--green); }
+
+.card.red {
+  background: var(--red-bg);
+  border-color: var(--red-border);
+}
+.card.red .card-value { color: var(--red); }
+
+.card.blue {
+  background: var(--blue-bg);
+  border-color: var(--blue-border);
+}
+.card.blue .card-value { color: var(--blue); }
+
+/* ─── PROGRESS BAR ─── */
+.prog-wrap { margin-top: 12px; }
+.prog-bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+.prog-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); margin-top: 4px; font-family: var(--mono); }
+
+/* ─── TABLE ─── */
+.table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.table-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.tscroll { max-height: 500px; overflow-y: auto; }
+.tscroll::-webkit-scrollbar { width: 4px; }
+.tscroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  padding: 10px 16px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+thead th:not(:first-child) { text-align: right; }
+
+tbody td {
+  padding: 11px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f2f4;
+  color: var(--text);
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+tbody td:first-child {
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #fafbfc; }
+tbody tr.future td { color: var(--text-3); }
+
+.clickable {
+  cursor: pointer;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+.clickable:hover { text-decoration-style: solid; }
+
+.margin-pos { color: var(--green); font-weight: 600; }
+.margin-neg { color: var(--red); font-weight: 600; }
+.margin-zero { color: var(--text-3); }
+
+/* ─── BADGE ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--sans);
+}
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-neutral { background: var(--bg); color: var(--text-2); border: 1px solid var(--border); }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 560px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+.modal-close {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.modal-close:hover { background: var(--border); }
+
+.modal table thead th { font-size: 10px; }
+.modal table tbody td { font-size: 12px; padding: 9px 14px; }
+
+/* ─── VEÍCULOS PAGE ─── */
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.vehicle-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  transition: border-color 0.15s;
+}
+.vehicle-card:hover { border-color: var(--accent); }
+
+.vehicle-plate {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: var(--blue-bg);
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.vehicle-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.vehicle-driver {
+  font-size: 12px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ─── COLLAB TABLE ─── */
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-active { background: #16a34a; }
+.dot-inactive { background: #d1d5db; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) {
+  .cards-4, .cards-3 { grid-template-columns: repeat(2, 1fr); }
+  .vehicle-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 20px; }
+  .topbar { padding: 0 16px; }
+}
+
+/* ─── CONTRATO PAGE ─── */
+.contrato-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.contrato-block {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.contrato-block-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.contrato-block-header .tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3);
+  font-family: var(--mono);
+}
+.kv-list { padding: 4px 0; }
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 20px;
+  border-bottom: 1px solid #f0f2f4;
+  font-size: 13px;
+}
+.kv-row:last-child { border-bottom: none; }
+.kv-label { color: var(--text-2); }
+.kv-value { font-family: var(--mono); font-weight: 600; color: var(--text); font-size: 13px; }
+.kv-value.green { color: var(--green); }
+.kv-value.red   { color: var(--red);   }
+.kv-value.blue  { color: var(--blue);  }
+.kv-row.highlight { background: #f0fdf4; }
+.kv-row.highlight .kv-label { font-weight: 600; color: var(--text); }
+.kv-row.highlight .kv-value { font-size: 15px; color: var(--green); }
+.kv-row.total { background: var(--navy, #0f4c8a); }
+
+.items-table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.source-note {
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 10px 0 0;
+  font-style: italic;
+}
+.divider-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 10px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+
+/* ─── CONTRATO ─── */
+.contrato-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:24px; }
+.contrato-block { background:var(--white); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.contrato-block-header { padding:13px 18px; border-bottom:1px solid var(--border); font-size:12px; font-weight:600; color:var(--text); background:var(--bg); display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+.contrato-block-header .tag { font-size:10px; font-weight:500; color:var(--text-3); font-family:var(--mono); }
+.kv-list { padding:4px 0; }
+.kv-row { display:flex; justify-content:space-between; align-items:center; padding:10px 18px; border-bottom:1px solid #f0f2f4; font-size:13px; }
+.kv-row:last-child { border-bottom:none; }
+.kv-label { color:var(--text-2); }
+.kv-value { font-family:var(--mono); font-weight:600; color:var(--text); font-size:13px; }
+.kv-value.green { color:var(--green); }
+.kv-value.red   { color:var(--red);   }
+.kv-value.blue  { color:var(--blue);  }
+.kv-row.highlight { background:#f0fdf4; }
+.kv-row.highlight .kv-label { font-weight:600; color:var(--text); }
+.kv-row.highlight .kv-value { font-size:15px; color:var(--green); }
+.source-note { font-size:11px; color:var(--text-3); padding:10px 18px 14px; font-style:italic; }
+
+/* Simulation */
+.sim-indicators { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+.sim-card { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+.sim-card-label { font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+.sim-card-value { font-size:20px; font-weight:700; font-family:var(--mono); color:var(--text); }
+.sim-card-sub   { font-size:11px; color:var(--text-3); margin-top:3px; }
+.sim-card.green .sim-card-value { color:var(--green); }
+.sim-card.blue  .sim-card-value { color:var(--blue);  }
+.sim-card.gold  { background:#fffbeb; border-color:#fde68a; }
+.sim-card.gold .sim-card-value { color:#92400e; }
+
+.sim-table-wrap { background:var(--white); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:28px; }
+.sim-table-header { padding:13px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--bg); }
+.sim-table-title { font-size:13px; font-weight:600; }
+.sim-legend { display:flex; gap:14px; font-size:11px; color:var(--text-3); align-items:center; }
+.sim-dot { width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:3px; }
+.sim-tscroll { max-height:480px; overflow-y:auto; }
+.sim-tscroll::-webkit-scrollbar { width:4px; }
+.sim-tscroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+.sim-table { width:100%; border-collapse:collapse; }
+.sim-table th { padding:9px 14px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); background:var(--bg); border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
+.sim-table th:first-child { text-align:left; }
+.sim-table td { padding:10px 14px; font-size:12px; border-bottom:1px solid #f0f2f4; text-align:right; font-family:var(--mono); color:var(--text); }
+.sim-table td:first-child { text-align:left; font-family:var(--sans); font-weight:500; }
+.sim-table tr.sim-real td { background:var(--white); }
+.sim-table tr.sim-proj td { background:#f0f9ff; }
+.sim-table tr.sim-reaj td { background:#fefce8; }
+.sim-table tr.sim-reaj .reaj-cell { color:#16a34a; font-weight:700; }
+.sim-table tr:last-child td { border-bottom:none; }
+.badge-real { display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px; font-weight:600; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; font-family:var(--sans); }
+.badge-proj { display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px; font-weight:600; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-family:var(--sans); }
+.badge-reaj { display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px; font-weight:600; background:#fef9c3; color:#854d0e; border:1px solid #fde68a; font-family:var(--sans); }
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="brand">
+    <div class="brand-mark">OE</div>
+    <div class="brand-text">
+      <div class="brand-name">AFAPLAN</div>
+      <div class="brand-sub">Contrato 1892 · Energisa</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('resumo', this)">Resumo Executivo</div>
+    <div class="nav-tab" onclick="showPage('veiculos', this)">Veículos</div>
+    <div class="nav-tab" onclick="showPage('colaboradores', this)">Colaboradores</div>
+    <div class="nav-tab" onclick="showPage('contrato', this)">Contrato</div>
+  </div>
+  <div class="nav-right" id="today-date"></div>
+</nav>
+
+<!-- ══════════════════════════════════════ PAGE 1: RESUMO ══════════════════════════════════════ -->
+<div class="page active" id="page-resumo">
+<main class="main">
+
+  <div class="section-title">Indicadores Contratuais</div>
+  <div class="cards-row cards-4">
+
+    <div class="card">
+      <div class="card-label">Valor Contratual Total</div>
+      <div class="card-value">R$ 30,26M</div>
+      <div class="card-sub">60 meses · REIDI incluso</div>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" style="width:46.2%"></div></div>
+        <div class="prog-labels"><span>46.2% executado</span><span>53.8% restante</span></div>
+      </div>
+    </div>
+
+    <div class="card green">
+      <div class="card-label">Valor Faturado Acumulado</div>
+      <div class="card-value" id="card-fat-acum">R$ 13,98M</div>
+      <div class="card-sub">até Abr/26 · 28 medições</div>
+    </div>
+
+    <div class="card blue">
+      <div class="card-label">Saldo Contratual</div>
+      <div class="card-value" id="card-saldo">R$ 12,21M</div>
+      <div class="card-sub">Saldo c/ reajuste · linha 62 · planilha</div>
+    </div>
+
+    <div id="card-deficit" class="card">
+      <div class="card-label">Déficit / Superávit do Período</div>
+      <div class="card-value" id="deficit-value">—</div>
+      <div class="card-sub">Faturado real vs. previsto acumulado</div>
+    </div>
+
+  </div>
+
+  <div class="section-title">Prazo de Execução</div>
+  <div class="cards-row cards-3">
+
+    <div class="card">
+      <div class="card-label">Meses Executados</div>
+      <div class="card-value">28</div>
+      <div class="card-sub">Jan/24 → Abr/26</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Meses Restantes</div>
+      <div class="card-value">32</div>
+      <div class="card-sub">Mai/26 → Dez/28</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Término Previsto</div>
+      <div class="card-value" style="font-size:20px">Dezembro/2028</div>
+      <div class="card-sub">Média real: <span id="avg-fat">—</span>/mês</div>
+    </div>
+
+  </div>
+
+
+  <div class="section-title">Alerta de Desempenho</div>
+  <div class="cards-row cards-2" id="alert-cards-row">
+    <div class="card" id="card-saldo-neg">
+      <div class="card-label">Primeiro Mês com Saldo Acumulado Negativo</div>
+      <div class="card-value" id="saldo-neg-value" style="font-size:20px">—</div>
+      <div class="card-sub" id="saldo-neg-sub">Faturado acumulado − Custo acumulado (equipe + frota)</div>
+    </div>
+    <div class="card" id="card-filter-state" style="cursor:pointer;user-select:none;transition:all 0.15s" onclick="toggleView()">
+      <div class="card-label">Visualização da Tabela</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+        <div id="btn-realizado" style="flex:1;padding:10px 14px;border-radius:8px;background:var(--accent);color:white;text-align:center;font-size:13px;font-weight:600;transition:all 0.15s">
+          ✓ Realizado
+        </div>
+        <div id="btn-arealizar" style="flex:1;padding:10px 14px;border-radius:8px;background:var(--bg);color:var(--text-2);text-align:center;font-size:13px;font-weight:500;border:1px solid var(--border);transition:all 0.15s">
+          ○ A realizar
+        </div>
+      </div>
+      <div class="card-sub" style="margin-top:8px">Clique para alternar entre meses executados e previstos</div>
+    </div>
+  </div>
+
+  <div class="section-title">Tabela Mensal</div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div>
+        <div class="table-title">Desempenho por Período</div>
+        <div class="table-sub">Clique no nº de colaboradores ou veículos para ver detalhes</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span class="badge badge-green">▲ Superávit</span>
+        <span class="badge badge-red">▼ Déficit</span>
+      </div>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Colaboradores</th>
+            <th>Veículos</th>
+            <th>Valor Previsto</th>
+            <th>Valor Faturado</th>
+            <th>Margem</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════ PAGE 2: VEÍCULOS ══════════════════════════════════════ -->
+<div class="page" id="page-veiculos">
+<main class="main">
+
+  <div class="section-title">Frota — Placas e Condutores</div>
+  <div class="vehicle-grid" id="vehicle-grid"></div>
+
+  <div class="section-title">Tabela de Veículos</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Placa</th>
+          <th style="text-align:left">Tipo / Modelo</th>
+          <th style="text-align:left">Condutor</th>
+          <th>Categoria</th>
+        </tr>
+      </thead>
+      <tbody id="veh-tbody"></tbody>
+    </table>
+  </div>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════ PAGE 3: COLABORADORES ══════════════════════════════════════ -->
+<div class="page" id="page-colaboradores">
+<main class="main">
+
+  <div class="section-title">Histórico de Colaboradores</div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div>
+        <div class="table-title">Quadro de Pessoal — Contrato 1892</div>
+        <div class="table-sub">31 profissionais · histórico completo desde Jan/24</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span class="badge badge-green">● Ativo</span>
+        <span class="badge badge-neutral">● Desligado</span>
+      </div>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th style="text-align:left">Função</th>
+            <th>Admissão</th>
+            <th>Desligamento</th>
+            <th>Status</th>
+            <th>Meses Ativos</th>
+          </tr>
+        </thead>
+        <tbody id="collab-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════ MODAL: COLABORADORES ══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-collab" onclick="closeModal('modal-collab')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="mc-title">Colaboradores</div>
+        <div class="modal-sub" id="mc-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-collab')">✕</button>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="text-align:left">Nome</th>
+        <th style="text-align:left">Função</th>
+        <th style="text-align:left">Veículo</th>
+      </tr></thead>
+      <tbody id="mc-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ MODAL: VEÍCULOS ══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-veh" onclick="closeModal('modal-veh')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="mv-title">Veículos</div>
+        <div class="modal-sub" id="mv-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-veh')">✕</button>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Placa</th>
+        <th style="text-align:left">Tipo</th>
+        <th style="text-align:left">Condutor</th>
+      </tr></thead>
+      <tbody id="mv-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ════════════════════════ DATA ════════════════════════
+
+const VEHICLES = [
+  {plate:'STS3D36', type:'T-Cross',  driver:'Ednara',   cat:'SUV'},
+  {plate:'SVE7J76', type:'L200',     driver:'Gilcimar', cat:'4x4'},
+  {plate:'SVA4G43', type:'L200',     driver:'Jean',     cat:'4x4'},
+  {plate:'SWH9J92', type:'L200',     driver:'José',     cat:'4x4'},
+  {plate:'TAY9A87', type:'Ranger',   driver:'Bruno',    cat:'4x4'},
+  {plate:'TAY9A89', type:'Ranger',   driver:'Edson',    cat:'4x4'},
+  {plate:'SVK9G04', type:'L200',     driver:'Ageu',     cat:'4x4'},
+  {plate:'SWE5J85', type:'L200',     driver:'Messias',  cat:'4x4'},
+];
+
+const COLLABORATORS = [
+  // ── Jan/24
+  {name:'EDNARA NOGUEIRA',          role:'Gerente',       admit:'08/01/2024', demit:null},
+  {name:'MESSIAS FILHO',            role:'Técnico',       admit:'08/01/2024', demit:null},
+  {name:'MARCOS EBERTH',            role:'Supervisor',    admit:'19/01/2024', demit:null},
+  {name:'JEAN LOREDO',              role:'Técnico',       admit:'16/01/2024', demit:null},
+  {name:'EDSON SILVA',              role:'Técnico',       admit:'08/01/2024', demit:'18/05/2026'},
+  {name:'RAFAEL PEREIRA',           role:'Analista',      admit:'10/01/2024', demit:null},
+  {name:'TEILOR CAMPOS',            role:'Analista',      admit:'10/01/2024', demit:'31/03/2026'},
+  {name:'BENEDITO EVANDRO',         role:'Técnico',       admit:'08/01/2024', demit:'05/06/2024'},
+  {name:'ALINE ARAUJO',             role:'Analista',      admit:'16/01/2024', demit:'13/01/2025'},
+  // ── Fev/24
+  {name:'AGEU CORDEIRO',            role:'Técnico',       admit:'14/02/2024', demit:'29/08/2025'},
+  {name:'BRUNO MESQUITA',           role:'Técnico',       admit:'14/02/2024', demit:null},
+  {name:'JOSÉ MESQUITA',            role:'Técnico',       admit:'14/02/2024', demit:null},
+  // ── Mar/24
+  {name:'GEOVANE FREITAS',          role:'Supervisor',    admit:'14/03/2024', demit:'01/04/2025'},
+  {name:'BRUNA CAMPOS DE ARAÚJO',   role:'Analista',      admit:'01/03/2024', demit:'30/08/2024'},
+  {name:'MIKAELLY OLIVEIRA',        role:'Analista',      admit:'14/03/2024', demit:null},
+  {name:'FABRÍCIA BRAGA',           role:'Analista',      admit:'18/03/2024', demit:null,      careerHistory:[{role:'Estagiário', from:'18/03/2024', to:'28/02/2025'},{role:'Analista', from:'01/03/2025', to:null}]},
+  {name:'SANDY CORREA',             role:'Analista',      admit:'18/03/2024', demit:'12/11/2025'},
+  // ── Abr/24
+  {name:'MATHEUS RICARDO',          role:'Analista',      admit:'06/04/2024', demit:'17/09/2024'},
+  {name:'SARAH CARDOSO',            role:'Analista',      admit:'08/04/2024', demit:null},
+  // ── Jun/24
+  {name:'GILCIMAR PAULA',           role:'Técnico',       admit:'13/06/2024', demit:'15/09/2025'},
+  // ── Set/24
+  {name:'CHRISTIANO LOBÃO',         role:'Analista',      admit:'20/09/2024', demit:null},
+  // ── Out/24
+  {name:'RICARDO DA SILVA BEZERRA', role:'Analista',      admit:'02/10/2024', demit:'31/12/2024'},
+  {name:'FRANCICLEIDE CARNEIRO',    role:'Analista',      admit:'17/10/2024', demit:null},
+  // ── Mar/25
+  {name:'ANA VILMA',                role:'Analista',      admit:'19/03/2025', demit:null},
+  {name:'ADRIA LORENA',             role:'Coordenador',   admit:'02/03/2025', demit:null},
+  // ── Fev/25
+  {name:'ESHYLA',                   role:'Estagiário',    admit:'28/02/2025', demit:'31/12/2025'},
+  // ── Jun/25
+  {name:'NATÁLIA MARÇAL',           role:'Analista',      admit:'05/06/2025', demit:'05/09/2025'},
+  // ── Nov/25
+  {name:'CAYRON',                   role:'Analista',      admit:'19/11/2025', demit:'29/05/2026'},
+  {name:'DHEYMILI',                 role:'Estagiário',    admit:'19/11/2025', demit:null},
+  // ── Out/25
+  {name:'JOÃO MARCOS',              role:'Estagiário',    admit:'06/10/2025', demit:null},
+  {name:'LUCAS',                    role:'Estagiário',    admit:'06/10/2025', demit:'31/12/2025'},
+  // ── Mar/26
+  {name:'JULIO CESAR',              role:'Estagiário',    admit:'11/03/2026', demit:null},
+];
+
+// Monthly data — exact from spreadsheet
+const MONTHLY = [
+  {m:'Jan/24',c:9, v:5, tp:272112,   fr:201916.4},
+  {m:'Fev/24',c:13,v:8, tp:401612,   fr:467077.23},
+  {m:'Mar/24',c:17,v:8, tp:462112,   fr:499156.89},
+  {m:'Abr/24',c:19,v:8, tp:496112,   fr:485655.62},
+  {m:'Mai/24',c:19,v:8, tp:496112,   fr:626489.97},
+  {m:'Jun/24',c:20,v:8, tp:521512,   fr:656813.25},
+  {m:'Jul/24',c:19,v:8, tp:504512,   fr:726916.83},
+  {m:'Ago/24',c:19,v:8, tp:504512,   fr:698616.67},
+  {m:'Set/24',c:19,v:8, tp:504512,   fr:647273.85},
+  {m:'Out/24',c:20,v:8, tp:529912,   fr:521421.09},
+  {m:'Nov/24',c:20,v:8, tp:529912,   fr:449313.38},
+  {m:'Dez/24',c:20,v:8, tp:529912,   fr:566868},
+  {m:'Jan/25',c:19,v:8, tp:537692,   fr:561229.56},
+  {m:'Fev/25',c:19,v:8, tp:559183,   fr:455107.21},
+  {m:'Mar/25',c:21,v:8, tp:586963,   fr:625992.1},
+  {m:'Abr/25',c:21,v:8, tp:586963,   fr:496094.32},
+  {m:'Mai/25',c:20,v:8, tp:560336,   fr:392288.52},
+  {m:'Jun/25',c:21,v:8, tp:578157,   fr:439723.93},
+  {m:'Jul/25',c:21,v:8, tp:578157,   fr:426575.39},
+  {m:'Ago/25',c:21,v:8, tp:578157,   fr:389328.27},
+  {m:'Set/25',c:21,v:8, tp:578157,   fr:416535.25},
+  {m:'Out/25',c:20,v:6, tp:501630,   fr:447380.55},
+  {m:'Nov/25',c:22,v:6, tp:529411,   fr:358864.36},
+  {m:'Dez/25',c:21,v:6, tp:511589,   fr:371061.25},
+  {m:'Jan/26',c:19,v:6, tp:519816,   fr:510090.85},
+  {m:'Fev/26',c:19,v:6, tp:519816,   fr:501685.04},
+  // Futuros
+  {m:'Mar/26',c:20,v:6,tp:538657,fr:485943.83},
+  {m:'Abr/26',c:19,v:6,tp:519816,fr:551171.73},
+  {m:'Mai/26',c:19,v:6,tp:519816,fr:0},
+  {m:'Jun/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Jul/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Ago/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Set/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Out/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Nov/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Dez/26',c:17,v:5,tp:459412,fr:0},
+  {m:'Jan/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Fev/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Mar/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Abr/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Mai/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Jun/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Jul/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Ago/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Set/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Out/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Nov/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Dez/27',c:17,v:5,tp:485710,fr:0},
+  {m:'Jan/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Fev/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Mar/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Abr/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Mai/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Jun/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Jul/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Ago/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Set/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Out/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Nov/28',c:17,v:5,tp:513513,fr:0},
+  {m:'Dez/28',c:17,v:5,tp:513513,fr:0},
+];
+
+// Active collaborators per month (simplified — who was active based on admit/demit)
+function getCollabsForMonth(mes) {
+  // Month active lookup — based on real data extracted
+  const active = {
+    'Jan/24': ['MESSIAS FILHO','JEAN LOREDO','EDSON SILVA','BENEDITO EVANDRO','EDNARA NARA',
+               'AGEU CORDEIRO','BRUNO MESQUITA','JOSÉ MESQUITA'],
+    'Fev/24': ['MESSIAS FILHO','JEAN LOREDO','EDSON SILVA','BENEDITO EVANDRO','EDNARA NARA',
+               'AGEU CORDEIRO','BRUNO MESQUITA','JOSÉ MESQUITA','MIKAELLY OLIVEIRA','FABRÍCIA BRAGA',
+               'SANDY CORREA','SARAH CARDOSO'],
+    'Mar/24': ['MESSIAS FILHO','JEAN LOREDO','EDSON SILVA','BENEDITO EVANDRO','EDNARA NARA',
+               'AGEU CORDEIRO','BRUNO MESQUITA','JOSÉ MESQUITA','MIKAELLY OLIVEIRA','FABRÍCIA BRAGA',
+               'SANDY CORREA','SARAH CARDOSO','GILCIMAR PAULA','FRANCICLEIDE CARNEIRO'],
+  };
+  if (active[mes]) return active[mes];
+  // Default: return current team for other months
+  return COLLABORATORS.filter(c => {
+    if (!c.demit) return true;
+    return c.demit > mes;
+  }).map(c => c.name);
+}
+
+function getVehsForMonth(mes) {
+  const d = MONTHLY.find(x => x.m === mes);
+  if (!d) return VEHICLES.slice(0,5);
+  // Jan/24 = 5 veiculos (no aditivo yet)
+  if (d.v === 5) return [VEHICLES[0], VEHICLES[2], VEHICLES[3], VEHICLES[5], VEHICLES[7]];
+  if (d.v === 6) return VEHICLES.slice(0,6);
+  return VEHICLES; // 8
+}
+
+// ════════════════════════ HELPERS ════════════════════════
+const fmtBR = v => 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK  = v => 'R$ ' + (v/1000).toFixed(0).replace('.',',') + 'K';
+
+const realized = MONTHLY.filter(d => d.fr > 0);
+const totalFat = realized.reduce((s,d) => s+d.fr, 0);
+// Atualizar cards da tela principal
+const _cf = document.getElementById('card-fat-acum');
+const _cs = document.getElementById('card-saldo');
+const _saldo = 26186490.69 - totalFat;
+if(_cf) _cf.textContent = 'R$ ' + (totalFat/1e6).toFixed(2).replace('.',',') + 'M';
+if(_cs) _cs.textContent = 'R$ ' + (_saldo/1e6).toFixed(2).replace('.',',') + 'M';
+const totalPrev = realized.reduce((s,d) => s+d.tp, 0);
+const deficit = totalFat - totalPrev;
+const avgFat = totalFat / realized.length;
+
+// Deficit card
+const defCard = document.getElementById('card-deficit');
+const defVal = document.getElementById('deficit-value');
+defCard.className = 'card ' + (deficit >= 0 ? 'green' : 'red');
+defVal.textContent = (deficit >= 0 ? '+' : '') + fmtK(deficit);
+
+document.getElementById('avg-fat').textContent = fmtK(avgFat);
+
+// ── Contrato tab — tabelas comparativas 2024 e 2025
+const PRECO_INICIAL  = 23982756.47;
+// Valores de reajuste oficiais conforme DFO10
+const REAJ_2024_RS   = 869735.73;   // reajuste oficial 2024→2025
+const REAJ_2025_RS   = 761080.66;   // reajuste oficial 2025→2026
+const REAJ_2024_PCT  = 0.048313;
+const REAJ_2025_PCT  = 0.057242;
+
+const meses2024 = ['Jan/24','Fev/24','Mar/24','Abr/24','Mai/24','Jun/24',
+                   'Jul/24','Ago/24','Set/24','Out/24','Nov/24','Dez/24'];
+const meses2025 = ['Jan/25','Fev/25','Mar/25','Abr/25','Mai/25','Jun/25',
+                   'Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25'];
+
+const fat2024 = MONTHLY.filter(d => meses2024.includes(d.m)).reduce((s,d) => s+d.fr, 0);
+const fat2025 = MONTHLY.filter(d => meses2025.includes(d.m)).reduce((s,d) => s+d.fr, 0);
+
+// Saldo Dez/24 = preço inicial - faturado 2024
+const saldo2024 = PRECO_INICIAL - fat2024;
+// Preço atualizado 2024 = saldo + reajuste oficial = 24.852.492,20
+const precoAt2024 = saldo2024 + REAJ_2024_RS;
+
+// Saldo Dez/25: começa do preço atualizado 2024, desconta faturado 2025
+const saldo2025 = precoAt2024 - fat2025;
+// Preço atualizado 2025 = saldo Dez/25 + reajuste oficial 761.080,66
+const precoAt2025 = saldo2025 + REAJ_2025_RS;
+
+const el = id => document.getElementById(id);
+if (el('ct24-faturado'))        el('ct24-faturado').textContent        = fmtBR(fat2024);
+if (el('ct24-saldo'))           el('ct24-saldo').textContent           = fmtBR(saldo2024);
+if (el('ct24-reaj-rs'))         el('ct24-reaj-rs').textContent         = fmtBR(REAJ_2024_RS);
+if (el('ct25-faturado'))        el('ct25-faturado').textContent        = fmtBR(fat2025);
+if (el('ct25-saldo'))           el('ct25-saldo').textContent           = fmtBR(saldo2025);
+if (el('ct25-reaj-rs'))         el('ct25-reaj-rs').textContent         = fmtBR(REAJ_2025_RS);
+if (el('ct25-preco-atualizado'))el('ct25-preco-atualizado').textContent= fmtBR(precoAt2025);
+
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+
+// ════════════════════════ MONTHLY TABLE ════════════════════════
+const tbody = document.getElementById('monthly-tbody');
+
+MONTHLY.forEach(d => {
+  const isFuture = d.fr === 0;
+  const margin = d.fr - d.tp;
+  const tr = document.createElement('tr');
+  tr.className = isFuture ? 'future' : '';
+
+  let marginCell = '—';
+  let marginClass = 'margin-zero';
+  if (!isFuture) {
+    marginClass = margin >= 0 ? 'margin-pos' : 'margin-neg';
+    marginCell = (margin >= 0 ? '▲ ' : '▼ ') + fmtBR(Math.abs(margin));
+  }
+
+  tr.dataset.view = isFuture ? 'arealizar' : 'realizado';
+  tr.innerHTML = `
+    <td>${d.m}</td>
+    <td style="text-align:right">
+      ${isFuture
+        ? `<span style="color:var(--text-3)">${d.c}</span>`
+        : `<span class="clickable" onclick="openCollabModal('${d.m}', ${d.c})">${d.c}</span>`
+      }
+    </td>
+    <td style="text-align:right">
+      ${isFuture
+        ? `<span style="color:var(--text-3)">${d.v}</span>`
+        : `<span class="clickable" onclick="openVehModal('${d.m}', ${d.v})">${d.v}</span>`
+      }
+    </td>
+    <td>${fmtBR(d.tp)}</td>
+    <td>${isFuture ? '<span style="color:var(--text-3)">—</span>' : fmtBR(d.fr)}</td>
+    <td class="${marginClass}">${marginCell}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ══ Saldo negativo: faturado acumulado - custo acumulado (tp)
+let cumFat = 0, cumTp = 0, mesNegativo = null;
+for (const d of MONTHLY.filter(x => x.fr > 0)) {
+  cumFat += d.fr;
+  cumTp  += d.tp;
+  if (cumFat - cumTp < 0 && !mesNegativo) mesNegativo = d.m;
+}
+const negCard = document.getElementById('card-saldo-neg');
+const negVal  = document.getElementById('saldo-neg-value');
+const negSub  = document.getElementById('saldo-neg-sub');
+if (mesNegativo) {
+  negCard.classList.add('red');
+  negVal.textContent = mesNegativo;
+  negSub.textContent = 'Faturado acumulado ficou abaixo do custo acumulado da equipe';
+} else {
+  negCard.classList.add('green');
+  negVal.textContent = 'Sem déficit';
+  negSub.textContent = 'Faturado acumulado supera o custo acumulado em todos os meses';
+}
+
+// ══ Toggle de visualização
+let currentView = 'realizado';
+window.toggleView = function() {
+  currentView = currentView === 'realizado' ? 'arealizar' : 'realizado';
+  document.getElementById('btn-realizado').style.background = currentView === 'realizado' ? 'var(--accent)' : 'var(--bg)';
+  document.getElementById('btn-realizado').style.color = currentView === 'realizado' ? 'white' : 'var(--text-2)';
+  document.getElementById('btn-realizado').style.border = currentView === 'realizado' ? 'none' : '1px solid var(--border)';
+  document.getElementById('btn-arealizar').style.background = currentView === 'arealizar' ? 'var(--accent)' : 'var(--bg)';
+  document.getElementById('btn-arealizar').style.color = currentView === 'arealizar' ? 'white' : 'var(--text-2)';
+  document.getElementById('btn-arealizar').style.border = currentView === 'arealizar' ? 'none' : '1px solid var(--border)';
+  document.querySelectorAll('#monthly-tbody tr').forEach(tr => {
+    tr.style.display = tr.dataset.view === currentView ? '' : 'none';
+  });
+};
+
+// ════════════════════════ VEHICLES PAGE ════════════════════════
+const vgrid = document.getElementById('vehicle-grid');
+VEHICLES.forEach(v => {
+  const div = document.createElement('div');
+  div.className = 'vehicle-card';
+  div.innerHTML = `
+    <div class="vehicle-plate">${v.plate}</div>
+    <div class="vehicle-type">${v.type}</div>
+    <div class="vehicle-driver">👤 ${v.driver}</div>
+    <div style="margin-top:8px"><span class="badge badge-blue">${v.cat}</span></div>
+  `;
+  vgrid.appendChild(div);
+});
+
+const vehTbody = document.getElementById('veh-tbody');
+VEHICLES.forEach(v => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="text-align:left;font-weight:600;color:var(--accent);letter-spacing:0.5px">${v.plate}</td>
+    <td style="text-align:left">${v.type}</td>
+    <td style="text-align:left">${v.driver}</td>
+    <td style="text-align:right"><span class="badge badge-${v.cat==='SUV'?'blue':'neutral'}">${v.cat}</span></td>
+  `;
+  vehTbody.appendChild(tr);
+});
+
+// ════════════════════════ COLLABORATORS PAGE ════════════════════════
+const ctbody = document.getElementById('collab-tbody');
+const months26 = ['Jan/24','Fev/24','Mar/24','Abr/24','Mai/24','Jun/24','Jul/24','Ago/24',
+  'Set/24','Out/24','Nov/24','Dez/24','Jan/25','Fev/25','Mar/25','Abr/25','Mai/25','Jun/25',
+  'Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Jan/26','Fev/26'];
+
+// Parse dd/mm/aaaa to Date
+function parseDate(s) {
+  if (!s) return null;
+  const [d,m,y] = s.split('/');
+  return new Date(+y, +m-1, +d);
+}
+function diffMonths(a, b) {
+  return (b.getFullYear() - a.getFullYear())*12 + (b.getMonth() - a.getMonth()) + 1;
+}
+const refDate = new Date(2026, 3, 30); // Abr/26 = last realized month
+
+// Sort: ativos primeiro, depois desligados por data de admissão
+const sortedCollabs = [...COLLABORATORS].sort((a,b) => {
+  const aActive = !a.demit ? 1 : 0;
+  const bActive = !b.demit ? 1 : 0;
+  if (aActive !== bActive) return bActive - aActive;
+  return parseDate(a.admit) - parseDate(b.admit);
+});
+
+sortedCollabs.forEach(c => {
+  const isActive = !c.demit;
+  const admitDate = parseDate(c.admit);
+  const demitDate = c.demit ? parseDate(c.demit) : null;
+  const endDate = demitDate || refDate;
+  const mesesAtivos = Math.max(1, diffMonths(admitDate, endDate));
+  const tr = document.createElement('tr');
+  // Build role cell — show career progression if exists
+  let roleCell = '';
+  if (c.careerHistory && c.careerHistory.length > 1) {
+    const steps = c.careerHistory.map((h, i) => {
+      const isLast = i === c.careerHistory.length - 1;
+      const arrow = isLast ? '' : ' <span style="color:var(--text-3);font-size:10px">→</span> ';
+      const style = isLast
+        ? 'color:var(--green);font-weight:600'
+        : 'color:var(--text-3);text-decoration:line-through;font-size:11px';
+      return `<span style="${style}">${h.role}</span>${arrow}`;
+    }).join('');
+    const promoDate = c.careerHistory[1].from;
+    roleCell = `<span title="Promoção em ${promoDate}">${steps}</span>
+      <span style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600;background:#fef9c3;color:#854d0e;border:1px solid #fde68a">▲ promovida</span>`;
+  } else {
+    roleCell = `<span style="font-family:var(--sans)">${c.role}</span>`;
+  }
+
+  tr.innerHTML = `
+    <td style="font-weight:500">${c.name}</td>
+    <td style="text-align:left">${roleCell}</td>
+    <td>${c.admit}</td>
+    <td>${c.demit || '—'}</td>
+    <td style="text-align:center">
+      <span class="badge ${isActive ? 'badge-green' : 'badge-neutral'}">
+        ${isActive ? '● Ativo' : '● Desligado'}
+      </span>
+    </td>
+    <td>${mesesAtivos}</td>
+  `;
+  ctbody.appendChild(tr);
+});
+
+// ════════════════════════ MODALS ════════════════════════
+window.openCollabModal = (mes, count) => {
+  document.getElementById('mc-title').textContent = `Colaboradores — ${mes}`;
+  document.getElementById('mc-sub').textContent = `${count} profissional(is) ativo(s) no período`;
+  const tbody = document.getElementById('mc-tbody');
+  tbody.innerHTML = '';
+  const collabs = getCollabsForMonth(mes);
+  collabs.forEach(name => {
+    const c = COLLABORATORS.find(x => x.name === name);
+    // Find vehicle for this person
+    const veh = VEHICLES.find(v => {
+      const surname = name.split(' ')[0];
+      return v.driver.toLowerCase() === surname.toLowerCase() ||
+             name.toLowerCase().includes(v.driver.toLowerCase());
+    });
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:left;font-weight:500;font-family:var(--sans)">${name}</td>
+      <td style="text-align:left;font-family:var(--sans)">${c ? c.role : '—'}</td>
+      <td style="text-align:left">${veh ? veh.plate + ' (' + veh.type + ')' : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('modal-collab').classList.add('open');
+};
+
+window.openVehModal = (mes, count) => {
+  document.getElementById('mv-title').textContent = `Veículos — ${mes}`;
+  document.getElementById('mv-sub').textContent = `${count} veículo(s) em campo no período`;
+  const tbody = document.getElementById('mv-tbody');
+  tbody.innerHTML = '';
+  const vehs = getVehsForMonth(mes);
+  vehs.forEach(v => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600;color:var(--accent);letter-spacing:0.5px">${v.plate}</td>
+      <td style="text-align:left">${v.type}</td>
+      <td style="text-align:left">${v.driver}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('modal-veh').classList.add('open');
+};
+
+window.closeModal = (id) => {
+  document.getElementById(id).classList.remove('open');
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// ════════════════════════ NAV ════════════════════════
+window.showPage = (id, el) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+};
+</script>
+
+
+<!-- ════════════════ PAGE 4: CONTRATO ════════════════ -->
+<div class="page" id="page-contrato">
+<main class="main">
+
+  <div class="section-title">Dados Contratuais — Fonte: Faturamento Real</div>
+
+  <div class="contrato-grid">
+
+    <!-- Itens colapsáveis -->
+    <div class="contrato-block" style="grid-column:1/-1">
+      <div class="contrato-block-header" onclick="toggleItems()">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="items-chevron" style="font-size:11px;transition:transform 0.2s">▶</span>
+          Itens Contratuais — Quantidade Estimada US
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)">R$ 23.982.756,47</span>
+          <span class="tag">11 itens · 60 meses · 2023022801-EAC</span>
+        </div>
+      </div>
+      <div id="items-body" style="display:none;overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="text-align:left;width:28px">#</th>
+            <th style="text-align:left">Descrição</th>
+            <th>Precificação</th>
+            <th>Vol./Mês</th>
+            <th>Vol. 60m</th>
+            <th>Vlr. Unit.</th>
+            <th>Vlr. Total</th>
+          </tr></thead>
+          <tbody>
+            <tr><td style="text-align:left">1</td><td style="text-align:left">Fiscalização de rede por poste projetado</td><td>Por ponto</td><td>1.291</td><td>77.460</td><td>R$ 19,6748</td><td>R$ 1.524.010,01</td></tr>
+            <tr><td style="text-align:left">2</td><td style="text-align:left">Fiscalização as built</td><td>Por ponto alterado</td><td>1.122</td><td>67.320</td><td>R$ 40,6417</td><td>R$ 2.736.000,00</td></tr>
+            <tr><td style="text-align:left">3</td><td style="text-align:left">Fiscalização de kit/padrão de medição / UC ligada</td><td>Por unidade consumidora</td><td>124</td><td>7.440</td><td>R$ 302,4194</td><td>R$ 2.250.000,00</td></tr>
+            <tr><td style="text-align:left">4</td><td style="text-align:left">Fiscalização de seccionamento de cerca</td><td>Por seccionamento</td><td>40</td><td>2.400</td><td>R$ 937,5000</td><td>R$ 2.250.000,00</td></tr>
+            <tr><td style="text-align:left">5</td><td style="text-align:left">Visita</td><td>Por obra</td><td>125</td><td>7.500</td><td>R$ 271,2960</td><td>R$ 2.034.720,00</td></tr>
+            <tr><td style="text-align:left">6</td><td style="text-align:left">Deslocamento Médio por Obra</td><td>Km</td><td>19.856</td><td>1.191.360</td><td>R$ 1,2188</td><td>R$ 1.452.000,00</td></tr>
+            <tr><td style="text-align:left">7</td><td style="text-align:left">Horas de desligamento</td><td>Por hora</td><td>80</td><td>4.800</td><td>R$ 468,7500</td><td>R$ 2.250.000,00</td></tr>
+            <tr><td style="text-align:left">8</td><td style="text-align:left">Inspecionar Rede Manutenção — Visual/Patrulhamento</td><td>Por Ponto</td><td>2.256</td><td>135.360</td><td>R$ 16,6225</td><td>R$ 2.250.026,46</td></tr>
+            <tr><td style="text-align:left">9</td><td style="text-align:left">Inspecionar Rede Manutenção — Termográfica</td><td>Por Ponto</td><td>2.120</td><td>127.200</td><td>R$ 17,6887</td><td>R$ 2.250.000,00</td></tr>
+            <tr><td style="text-align:left">10</td><td style="text-align:left">Inspecionar Rede Manutenção — Baixa Tensão</td><td>Por Ponto</td><td>1.960</td><td>117.600</td><td>R$ 19,1327</td><td>R$ 2.250.000,00</td></tr>
+            <tr><td style="text-align:left">11</td><td style="text-align:left">Análise de projeto (empresa projetista)</td><td>Por projeto</td><td>2.372</td><td>142.320</td><td>R$ 19,2243</td><td>R$ 2.736.000,00</td></tr>
+            <tr style="background:var(--bg)">
+              <td colspan="6" style="text-align:right;font-size:11px;color:var(--text-2);font-weight:600">Valor Total</td>
+              <td style="font-family:var(--mono);font-weight:700;color:var(--accent)">R$ 23.982.756,47</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tabelas Comparativas 2024 / 2025 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:0">
+
+      <!-- 2024 -->
+      <div class="contrato-block">
+        <div class="contrato-block-header" style="cursor:default;font-size:13px;font-weight:700;letter-spacing:0.3px">
+          Posição Contratual — Ano 2024
+        </div>
+        <div class="kv-list">
+          <div class="kv-row"><span class="kv-label">Preço Inicial do Contrato</span><span class="kv-value">R$ 23.982.756,47</span></div>
+          <div class="kv-row"><span class="kv-label">Montante Faturado até 2024</span><span class="kv-value green" id="ct24-faturado">—</span></div>
+          <div class="kv-row"><span class="kv-label">Saldo do Contrato até 2024</span><span class="kv-value blue" id="ct24-saldo">—</span></div>
+          <div class="kv-row"><span class="kv-label">Valor do Reajuste (%)</span><span class="kv-value">4,831%</span></div>
+          <div class="kv-row"><span class="kv-label">Valor do Reajuste (R$)</span><span class="kv-value green" id="ct24-reaj-rs">—</span></div>
+          <div class="kv-row highlight"><span class="kv-label">Preço do Contrato Atualizado</span><span class="kv-value green">R$ 24.852.492,20</span></div>
+        </div>
+      </div>
+
+      <!-- 2025 -->
+      <div class="contrato-block">
+        <div class="contrato-block-header" style="cursor:default;font-size:13px;font-weight:700;letter-spacing:0.3px">
+          Posição Contratual — Ano 2025
+        </div>
+        <div class="kv-list">
+          <div class="kv-row"><span class="kv-label">Preço Inicial do Contrato</span><span class="kv-value">R$ 24.852.492,20</span></div>
+          <div class="kv-row"><span class="kv-label">Montante Faturado até 2025</span><span class="kv-value green" id="ct25-faturado">—</span></div>
+          <div class="kv-row"><span class="kv-label">Saldo do Contrato até 2025</span><span class="kv-value blue" id="ct25-saldo">—</span></div>
+          <div class="kv-row"><span class="kv-label">Valor do Reajuste (%)</span><span class="kv-value">5,724%</span></div>
+          <div class="kv-row"><span class="kv-label">Valor do Reajuste (R$)</span><span class="kv-value green" id="ct25-reaj-rs">—</span></div>
+          <div class="kv-row highlight"><span class="kv-label">Preço do Contrato Atualizado</span><span class="kv-value green" id="ct25-preco-atualizado">—</span></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Simulação -->
+  <div class="section-title">Simulação de Faturamento — Evolução do Saldo com Reajustes</div>
+
+  <div class="sim-indicators">
+    <div class="sim-card blue">
+      <div class="sim-card-label">Saldo Atual (c/ reajuste)</div>
+      <div class="sim-card-value" id="sim-saldo-atual">—</div>
+      <div class="sim-card-sub">após Abr/26</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-card-label">Meses Restantes</div>
+      <div class="sim-card-value" id="sim-meses-rest">—</div>
+      <div class="sim-card-sub">Mai/26 → Dez/28</div>
+    </div>
+    <div class="sim-card green">
+      <div class="sim-card-label">Faturamento Projetado/Mês</div>
+      <div class="sim-card-value" id="sim-fat-proj">—</div>
+      <div class="sim-card-sub" id="sim-fat-proj-sub">vs. média histórica</div>
+    </div>
+    <div class="sim-card gold">
+      <div class="sim-card-label">Impacto Total dos Reajustes</div>
+      <div class="sim-card-value" id="sim-impacto-reaj">—</div>
+      <div class="sim-card-sub">adicionados ao saldo</div>
+    </div>
+  </div>
+
+  <div class="sim-table-wrap">
+    <div class="sim-table-header">
+      <div class="sim-table-title">Evolução Mês a Mês — Saldo Contratual Simulado</div>
+      <div class="sim-legend">
+        <span><span class="sim-dot" style="background:#15803d"></span>Realizado</span>
+        <span><span class="sim-dot" style="background:#0369a1"></span>Projetado</span>
+        <span><span class="sim-dot" style="background:#854d0e"></span>Virada c/ reajuste</span>
+      </div>
+    </div>
+    <div class="sim-tscroll">
+      <table class="sim-table">
+        <thead><tr>
+          <th>Mês</th>
+          <th>Faturado Real</th>
+          <th>Reajuste Aplicado</th>
+          <th>Saldo Acumulado</th>
+          <th>Fat. Projetado</th>
+          <th>Tipo</th>
+        </tr></thead>
+        <tbody id="sim-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- Script separado APÓS todo o HTML — acessa DOM da aba Contrato sem event listeners -->
+<script>
+(function() {
+  // Helpers (redeclare locally to be safe)
+  function fmtBR(v) { return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function fmtK(v)  { return 'R$ ' + (v/1000).toFixed(0) + 'K'; }
+  function g(id)    { return document.getElementById(id); }
+
+  // ── Tabelas comparativas 2024 / 2025
+  var PRECO_INICIAL = 23982756.47;
+  var REAJ_2024_RS  = 869735.73;
+  var REAJ_2025_RS  = 761080.66;
+
+  var meses2024 = ['Jan/24','Fev/24','Mar/24','Abr/24','Mai/24','Jun/24','Jul/24','Ago/24','Set/24','Out/24','Nov/24','Dez/24'];
+  var meses2025 = ['Jan/25','Fev/25','Mar/25','Abr/25','Mai/25','Jun/25','Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25'];
+
+  var fat2024     = MONTHLY.filter(function(d){ return meses2024.indexOf(d.m)>=0; }).reduce(function(s,d){ return s+d.fr; }, 0);
+  var fatAte2025  = MONTHLY.filter(function(d){ return meses2024.indexOf(d.m)>=0 || meses2025.indexOf(d.m)>=0; }).reduce(function(s,d){ return s+d.fr; }, 0);
+
+  // Saldo Dez/24 = preço inicial - faturado 2024
+  var saldo2024   = PRECO_INICIAL - fat2024;
+  // Saldo Dez/25 = último saldo da linha 61 da planilha
+  var saldo2025   = 12897405.20;
+  // Preço atualizado = saldo Dez/25 + reajuste oficial
+  var precoAt2025 = saldo2025 + REAJ_2025_RS;
+
+  if (g('ct24-faturado'))        g('ct24-faturado').textContent        = fmtBR(fat2024);
+  if (g('ct24-saldo'))           g('ct24-saldo').textContent           = fmtBR(saldo2024);
+  if (g('ct24-reaj-rs'))         g('ct24-reaj-rs').textContent         = fmtBR(REAJ_2024_RS);
+  if (g('ct25-faturado'))        g('ct25-faturado').textContent        = fmtBR(fatAte2025);
+  if (g('ct25-saldo'))           g('ct25-saldo').textContent           = fmtBR(saldo2025);
+  if (g('ct25-reaj-rs'))         g('ct25-reaj-rs').textContent         = fmtBR(REAJ_2025_RS);
+  if (g('ct25-preco-atualizado'))g('ct25-preco-atualizado').textContent= fmtBR(precoAt2025);
+
+  // ── Legado (mantido para compatibilidade)
+  var realizedAll  = MONTHLY.filter(function(d) { return d.fr > 0; });
+  var totalFatAll  = realizedAll.reduce(function(s,d) { return s + d.fr; }, 0);
+  var saldoReaj2   = 26186490.69 - totalFatAll;
+  var reajEstimado = saldoReaj2 * 0.048313;
+
+  if (g('ct-fat-dez24'))  g('ct-fat-dez24').textContent  = fmtBR(fatAteDez24);
+  if (g('ct-saldo-base')) g('ct-saldo-base').textContent = fmtBR(saldoBase);
+  if (g('ct-saldo-reaj')) g('ct-saldo-reaj').textContent = fmtBR(saldoReaj);
+  if (g('ct-fat-total'))  g('ct-fat-total').textContent  = fmtBR(totalFatAll);
+  if (g('ct-saldo-reaj2'))g('ct-saldo-reaj2').textContent= fmtBR(saldoReaj2);
+  if (g('ct-val-reaj'))   g('ct-val-reaj').textContent   = fmtBR(reajEstimado);
+  if (g('ct-meses-exec')) g('ct-meses-exec').textContent = realizedAll.length + ' de 60';
+
+  // ── Simulation
+  // Lógica idêntica à planilha:
+  // Linha 60: Jan/24-Dez/24 → base 23.982.756,47 - faturado acumulado (sem reajuste)
+  // Linha 61: Y61 = X60*(1+4,8313%) → Jan/25-Dez/25 saldo = anterior - faturado
+  // Linha 62: AM62 = AL61*(1+4,8313%+5,7242%) → Jan/26+ saldo = anterior - faturado real
+  var REAJ1 = 0.048313;   // Jan/25
+  var REAJ2 = 0.048313 + 0.057242; // Jan/26 (acumulado conforme fórmula AM62)
+  var REAJ3 = 0.057242;   // Jan/27
+  var REAJ4 = 0.057242;   // Jan/28
+
+  var saldo = 23982756.47;
+  var totalReajuste = 0;
+  var rows = [];
+
+  var realMonths   = MONTHLY.filter(function(d) { return d.fr > 0; });
+  var futureMonths = MONTHLY.filter(function(d) { return d.fr === 0; });
+
+  // Ano de transição: col Y na planilha = mês de virada entre blocos
+  // Jan/25 → aplica reajuste 1 sobre saldo Dez/24
+  // Jan/26 → aplica reajuste 2 (acumulado) sobre saldo Dez/25
+  var saldoDez24 = null;
+  var saldoDez25 = null;
+
+  for (var i = 0; i < realMonths.length; i++) {
+    var d = realMonths[i];
+    var rv = 0, rp = 0;
+    if (d.m === 'Jan/25') {
+      rp = REAJ1; rv = saldoDez24 * rp; saldo = saldoDez24 + rv; totalReajuste += rv;
+    } else if (d.m === 'Jan/26') {
+      rp = REAJ2; rv = saldoDez25 * rp; saldo = saldoDez25 + rv; totalReajuste += rv;
+    }
+    saldo -= d.fr;
+    if (d.m === 'Dez/24') saldoDez24 = saldo;
+    if (d.m === 'Dez/25') saldoDez25 = saldo;
+    rows.push({ mes: d.m, fatReal: d.fr, reajValor: rv, reajPct: rp, saldo: saldo, tipo: rv > 0 ? 'reaj' : 'real', fatProj: null });
+  }
+
+  var saldoProj = saldo;
+  var saldoDez26 = null, saldoDez27 = null;
+  for (var j = 0; j < futureMonths.length; j++) {
+    var dm = futureMonths[j];
+    var fv = 0, fp = 0;
+    if (dm.m === 'Jan/27') {
+      fp = REAJ3; fv = saldoDez26 * fp; saldoProj = saldoDez26 + fv; totalReajuste += fv;
+    } else if (dm.m === 'Jan/28') {
+      fp = REAJ4; fv = saldoDez27 * fp; saldoProj = saldoDez27 + fv; totalReajuste += fv;
+    }
+    var mLeft = futureMonths.length - j;
+    var proj  = saldoProj / mLeft;
+    saldoProj -= proj;
+    if (dm.m === 'Dez/26') saldoDez26 = saldoProj;
+    if (dm.m === 'Dez/27') saldoDez27 = saldoProj;
+    rows.push({ mes: dm.m, fatReal: null, reajValor: fv, reajPct: fp, saldo: saldoProj, tipo: fv > 0 ? 'reaj' : 'proj', fatProj: proj });
+  }
+
+    var fatProjMensal = saldo / futureMonths.length;
+  var avgHist = totalFatAll / realMonths.length;
+  var diffPct = ((fatProjMensal - avgHist) / avgHist * 100);
+
+  if (g('sim-saldo-atual'))  g('sim-saldo-atual').textContent  = fmtBR(saldo);
+  if (g('sim-meses-rest'))   g('sim-meses-rest').textContent   = futureMonths.length;
+  if (g('sim-fat-proj'))     g('sim-fat-proj').textContent     = fmtBR(fatProjMensal);
+  if (g('sim-fat-proj-sub')) g('sim-fat-proj-sub').textContent =
+    (diffPct >= 0 ? '▲ +' : '▼ ') + Math.abs(diffPct).toFixed(1) + '% vs. média (' + fmtK(avgHist) + ')';
+  if (g('sim-impacto-reaj')) g('sim-impacto-reaj').textContent = fmtBR(totalReajuste);
+
+  var simTbody = g('sim-tbody');
+  if (simTbody) {
+    for (var k = 0; k < rows.length; k++) {
+      var r = rows[k];
+      var tr = document.createElement('tr');
+      tr.className = 'sim-' + r.tipo;
+      var badge = r.tipo === 'real' ? '<span class="badge-real">Realizado</span>'
+                : r.tipo === 'reaj' ? '<span class="badge-reaj">Reajuste</span>'
+                :                     '<span class="badge-proj">Projetado</span>';
+      tr.innerHTML =
+        '<td>' + r.mes + '</td>' +
+        '<td>' + (r.fatReal !== null ? fmtBR(r.fatReal) : '<span style="color:var(--text-3)">—</span>') + '</td>' +
+        '<td class="reaj-cell">' + (r.reajValor > 0 ? '+' + fmtBR(r.reajValor) + ' (+' + (r.reajPct*100).toFixed(4) + '%)' : '<span style="color:var(--text-3)">—</span>') + '</td>' +
+        '<td style="font-weight:600;color:' + (r.saldo >= 0 ? 'var(--blue)' : 'var(--red)') + '">' + fmtBR(r.saldo) + '</td>' +
+        '<td>' + (r.fatProj !== null ? '<span style="color:#0369a1;font-weight:600">' + fmtBR(r.fatProj) + '</span>' : '<span style="color:var(--text-3)">—</span>') + '</td>' +
+        '<td style="text-align:right">' + badge + '</td>';
+      simTbody.appendChild(tr);
+    }
+  }
+
+  // Toggle items table
+  window.toggleItems = function() {
+    var body = g('items-body');
+    var chev = g('items-chevron');
+    if (!body) return;
+    if (body.style.display === 'none') { body.style.display = 'block'; chev.style.transform = 'rotate(90deg)'; }
+    else { body.style.display = 'none'; chev.style.transform = 'rotate(0deg)'; }
+  };
+})();
+</script>
+
+</body>
+</html>

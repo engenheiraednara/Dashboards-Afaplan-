@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFAPLAN — Dashboard Operacional</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+  :root {
+    --navy: #0d1b2e;
+    --navy2: #142236;
+    --navy3: #1c3050;
+    --accent: #2e85d4;
+    --accent2: #1a6aad;
+    --gold: #e8a83e;
+    --teal: #2ec4b6;
+    --red: #e05f5f;
+    --green: #4caf7d;
+    --text: #f0f4fa;
+    --text2: #8fa8c8;
+    --text3: #5e7a98;
+    --border: rgba(46,133,212,0.15);
+    --card: rgba(20,34,54,0.9);
+    --card2: rgba(28,48,80,0.6);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 60% at 10% 10%, rgba(46,133,212,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 90%, rgba(46,196,182,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,27,46,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { 
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
+    letter-spacing: 0.08em; color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+
+  nav { display: flex; gap: 4px; }
+  nav button {
+    background: none; border: none; cursor: pointer;
+    padding: 8px 20px; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+    color: var(--text2); transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  nav button:hover { background: var(--card2); color: var(--text); }
+  nav button.active { background: var(--accent); color: #fff; }
+
+  .header-right { font-size: 0.78rem; color: var(--text3); font-weight: 300; }
+
+  /* ---- MAIN ---- */
+  main {
+    position: relative; z-index: 1;
+    padding: 28px 32px;
+    max-width: 1600px; margin: 0 auto;
+  }
+
+  /* ---- FILTER BAR ---- */
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .filter-bar label { font-size: 0.72rem; color: var(--text3); display: block; margin-bottom: 3px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .filter-bar select {
+    background: var(--navy3); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    padding: 6px 10px; border-radius: 6px; cursor: pointer; outline: none;
+    min-width: 130px;
+  }
+  .filter-bar select:focus { border-color: var(--accent); }
+  .filter-group { display: flex; flex-direction: column; }
+  .btn-reset {
+    align-self: flex-end;
+    background: var(--navy3); border: 1px solid var(--border);
+    color: var(--text2); font-size: 0.8rem; padding: 6px 14px;
+    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-reset:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ---- SECTION TITLE ---- */
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--text3);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ---- KPI GRID ---- */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--teal));
+  }
+  .kpi-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .kpi-value { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .kpi-sub { font-size: 0.75rem; color: var(--text2); margin-top: 6px; }
+  .kpi-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 600; margin-top: 4px; }
+  .badge-adm { background: rgba(46,133,212,0.2); color: var(--accent); }
+  .badge-campo { background: rgba(46,196,182,0.2); color: var(--teal); }
+
+  /* ---- CHART GRID ---- */
+  .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .chart-grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .chart-grid-full { margin-bottom: 20px; }
+
+  .chart-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+    position: relative;
+  }
+  .chart-title {
+    font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-sub { font-size: 0.72rem; color: var(--text3); margin-bottom: 16px; }
+  .chart-wrap { position: relative; }
+
+  /* ---- RANKING TABLE ---- */
+  .ranking-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .ranking-table th {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); padding: 8px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .ranking-table td { padding: 10px 12px; border-bottom: 1px solid rgba(46,133,212,0.06); }
+  .ranking-table tr:hover td { background: var(--card2); cursor: pointer; }
+  .rank-num { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text3); font-size: 0.9rem; }
+  .rank-num.top3 { color: var(--gold); }
+  .fiscal-name { font-weight: 500; color: var(--text); }
+  .tipo-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 20px;
+    font-size: 0.68rem; font-weight: 600;
+  }
+  .tipo-adm { background: rgba(46,133,212,0.2); color: var(--accent); }
+  .tipo-campo { background: rgba(46,196,182,0.2); color: var(--teal); }
+
+  .bar-mini { height: 4px; border-radius: 2px; background: var(--navy3); overflow: hidden; width: 80px; display: inline-block; vertical-align: middle; }
+  .bar-mini-fill { height: 100%; border-radius: 2px; }
+
+  /* ---- COMPARATIVO ---- */
+  .compare-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .compare-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px;
+  }
+  .compare-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .compare-type { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .compare-metric { }
+  .compare-metric-label { font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare-metric-value { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text); }
+
+  /* ---- MODAL DRILL-DOWN ---- */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 32px; max-width: 900px; width: 95%;
+    max-height: 85vh; overflow-y: auto; position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--card2); border: 1px solid var(--border);
+    color: var(--text2); width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { background: var(--red); color: #fff; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+  .modal-sub { font-size: 0.82rem; color: var(--text3); margin-bottom: 24px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .modal-kpi { background: var(--card2); border-radius: 8px; padding: 14px; }
+  .modal-kpi-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-bottom: 4px; }
+  .modal-kpi-val { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; }
+
+  /* ---- SCREEN VISIBILITY ---- */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ---- HEATMAP ---- */
+  .heatmap-grid { overflow-x: auto; }
+  .heatmap-table { border-collapse: collapse; width: 100%; font-size: 0.72rem; }
+  .heatmap-table th { color: var(--text3); font-weight: 500; padding: 4px 6px; text-align: center; white-space: nowrap; }
+  .heatmap-table td { padding: 3px; text-align: center; }
+  .heat-cell {
+    display: inline-block; width: 32px; height: 22px; border-radius: 3px;
+    line-height: 22px; font-size: 0.65rem; font-weight: 600;
+    color: rgba(255,255,255,0.9);
+  }
+
+  /* ---- PARETO ---- */
+  .pareto-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(46,133,212,0.06); }
+  .pareto-rank { font-family: 'Syne', sans-serif; font-size: 0.78rem; color: var(--text3); width: 20px; }
+  .pareto-name { flex: 1; font-size: 0.8rem; color: var(--text); }
+  .pareto-bar-wrap { width: 120px; height: 6px; background: var(--navy3); border-radius: 3px; overflow: hidden; }
+  .pareto-bar-fill { height: 100%; border-radius: 3px; }
+  .pareto-val { font-size: 0.78rem; color: var(--text2); width: 70px; text-align: right; }
+
+  /* ---- CAPACITY GAUGE ---- */
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 10px 0; }
+  .gauge-value { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; }
+  .gauge-label { font-size: 0.75rem; color: var(--text3); margin-top: 4px; text-align: center; }
+  .gauge-bar { width: 100%; height: 8px; background: var(--navy3); border-radius: 4px; overflow: hidden; margin: 12px 0 6px; }
+  .gauge-fill { height: 100%; border-radius: 4px; }
+
+  /* ---- TABS ---- */
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab-btn {
+    background: none; border: 1px solid var(--border); cursor: pointer;
+    padding: 7px 18px; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500;
+    color: var(--text2); transition: all 0.2s;
+  }
+  .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+  /* Responsivo */
+  @media (max-width: 900px) {
+    .chart-grid-2, .chart-grid-3, .compare-cards { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+    .modal-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AFA<span>PLAN</span> <span style="color:var(--text3);font-weight:300;font-size:0.85rem;margin-left:8px;">/ Dashboard Operacional</span></div>
+  <nav>
+    <button class="active" onclick="switchScreen('tela1',this)">CC 1892</button>
+    <button onclick="switchScreen('tela3',this)">Disp. Energisa Acre</button>
+    <button onclick="switchScreen('tela4',this)">Disp. Energisa Tocantins</button>
+  </nav>
+  <div class="header-right">CC 1892 · Energisa Acre · Energisa Tocantins</div>
+</header>
+
+<main>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label>Ano</label>
+    <select id="fAno" onchange="onAnoChange()">
+      <option value="">Todos</option>
+      <option>2024</option><option>2025</option><option>2026</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Mês</label>
+    <select id="fMes" onchange="applyFilters()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Tipo de Fiscal</label>
+    <select id="fTipo" onchange="applyFilters()">
+      <option value="">Todos</option>
+      <option>ADM</option><option>CAMPO</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Fiscal</label>
+    <select id="fFiscal" onchange="applyFilters()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Tipo de Obra</label>
+    <select id="fObra" onchange="applyFilters()">
+      <option value="">Todas</option>
+    </select>
+  </div>
+  <div style="align-self:flex-end">
+    <button class="btn-reset" onclick="resetFilters()">↺ Limpar</button>
+  </div>
+</div>
+
+<!-- TELA 1: PRODUTIVIDADE -->
+<div id="tela1" class="screen active">
+
+  <!-- PAINEL TOPO: BENCHMARK DINÂMICO -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 24px;margin-bottom:24px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;color:var(--text);letter-spacing:0.04em">
+          Capacidade de Medição — <span id="benchAnoLabel">Todos os anos</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:3px">
+          Média mensal = total do período ÷ meses ativos de cada fiscal · base: data real de fiscalização
+        </div>
+      </div>
+    </div>
+    <div id="benchCards" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;margin-bottom:12px"></div>
+    <div style="background:rgba(46,133,212,0.06);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 14px;font-size:0.73rem;color:var(--text2);line-height:1.5">
+      <strong style="color:var(--text)">Como ler:</strong> cada fiscal entra no cálculo apenas nos meses em que estava ativo naquele ano. Ao filtrar por ano, os números refletem exatamente aquele período.
+    </div>
+  </div>
+
+
+    <div class="section-title">KPIs Executivos</div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- Evolução Mensal full-width -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Evolução Mensal — Valor Medido</div>
+    <div class="chart-sub">ADM × Campo em R$ — período completo</div>
+    <div class="chart-wrap" style="height:200px"><canvas id="chartEvolucao"></canvas></div>
+  </div>
+
+  <!-- Ranking full-width -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Ranking de Fiscais</div>
+    <div class="chart-sub">Clique em um fiscal para detalhamento completo</div>
+    <div style="max-height:360px; overflow-y:auto">
+      <table class="ranking-table" id="rankingTable">
+        <thead><tr>
+          <th>#</th><th>Fiscal</th><th>Tipo</th>
+          <th>Valor Total</th><th>Itens</th><th>Média Mensal</th><th>% Fat.</th><th>% Prod.</th>
+        </tr></thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Comparativo ADM x Campo -->
+  <!-- Contexto do filtro ativo -->
+  <div id="filterContext" style="display:none;background:rgba(46,133,212,0.08);border:1px solid rgba(46,133,212,0.2);border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div id="filterContextText" style="font-size:0.8rem;color:var(--text2)"></div>
+    <button onclick="resetFilters()" style="background:none;border:1px solid rgba(46,133,212,0.3);color:var(--accent);font-size:0.75rem;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif">✕ Limpar filtros</button>
+  </div>
+
+  <div class="section-title">Comparativo ADM × Campo</div>
+  <div class="compare-cards" id="compareCards"></div>
+
+  <!-- CAPACIDADE REAL DE MEDIÇÃO -->
+  <div class="section-title">Produtividade por Perfil — Média mensal por fiscal e por ano</div>
+
+  <!-- Explicação média vs mediana -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+    <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 16px">
+      <div style="font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:6px">Por que mediana?</div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6">É o valor do meio — metade dos meses ficou acima, metade abaixo. <strong style="color:var(--text)">Representa o mês típico.</strong> Use para proposta: é o que você pode comprometer.</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:14px 16px">
+      <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:6px">Por que média?</div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6"><strong style="color:var(--text)">Inflada por meses de pico.</strong> No ADM o mesmo fiscal pode ir de R$ 4K a R$ 80K conforme volume de obras. Use para analisar potencial máximo, não para comprometer.</div>
+    </div>
+  </div>
+
+  <!-- Tabelas por tipo -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+    <!-- CAMPO -->
+    <div class="chart-card" style="border-top:3px solid var(--teal)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="background:rgba(46,196,182,0.15);color:var(--teal);font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em">CAMPO</span>
+        <span style="font-size:0.72rem;color:var(--text3)">média mensal = total do ano ÷ meses ativos</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:6px 8px;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Fiscal</th>
+            <th colspan="2" style="text-align:center;padding:6px 4px;font-size:0.65rem;color:var(--text3);letter-spacing:0.05em;font-weight:600;border-left:1px solid var(--border)">2024</th>
+            <th colspan="2" style="text-align:center;padding:6px 4px;font-size:0.65rem;color:var(--text3);letter-spacing:0.05em;font-weight:600;border-left:1px solid var(--border)">2025</th>
+            <th style="text-align:right;padding:6px 8px;font-size:0.65rem;color:var(--text3);letter-spacing:0.05em;font-weight:600;border-left:1px solid var(--border)">2026*</th>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th></th>
+            <th style="text-align:right;padding:3px 4px;font-size:0.6rem;color:var(--text3);border-left:1px solid var(--border)">Total</th>
+            <th style="text-align:right;padding:3px 8px;font-size:0.6rem;color:var(--teal)">Média/mês</th>
+            <th style="text-align:right;padding:3px 4px;font-size:0.6rem;color:var(--text3);border-left:1px solid var(--border)">Total</th>
+            <th style="text-align:right;padding:3px 8px;font-size:0.6rem;color:var(--teal)">Média/mês</th>
+            <th style="text-align:right;padding:3px 8px;font-size:0.6rem;color:var(--text3);border-left:1px solid var(--border)">Total</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaCampo"></tbody>
+      </table>
+    </div>
+
+    <!-- ADM -->
+    <div class="chart-card" style="border-top:3px solid var(--accent)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="background:rgba(46,133,212,0.15);color:var(--accent);font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em">ADM</span>
+        <span style="font-size:0.72rem;color:var(--text3)">média mensal = total do ano ÷ meses ativos</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:6px 8px;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Fiscal</th>
+            <th colspan="2" style="text-align:center;padding:6px 4px;font-size:0.65rem;color:var(--text3);letter-spacing:0.05em;font-weight:600;border-left:1px solid var(--border)">2024</th>
+            <th colspan="2" style="text-align:center;padding:6px 4px;font-size:0.65rem;color:var(--text3);letter-spacing:0.05em;font-weight:600;border-left:1px solid var(--border)">2025</th>
+            <th style="text-align:right;padding:6px 8px;font-size:0.65rem;color:var(--text3);letter-spacing:0.05em;font-weight:600;border-left:1px solid var(--border)">2026*</th>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th></th>
+            <th style="text-align:right;padding:3px 4px;font-size:0.6rem;color:var(--text3);border-left:1px solid var(--border)">Total</th>
+            <th style="text-align:right;padding:3px 8px;font-size:0.6rem;color:var(--accent)">Média/mês</th>
+            <th style="text-align:right;padding:3px 4px;font-size:0.6rem;color:var(--text3);border-left:1px solid var(--border)">Total</th>
+            <th style="text-align:right;padding:3px 8px;font-size:0.6rem;color:var(--accent)">Média/mês</th>
+            <th style="text-align:right;padding:3px 8px;font-size:0.6rem;color:var(--text3);border-left:1px solid var(--border)">Total</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaAdm"></tbody>
+      </table>
+      <div style="font-size:0.68rem;color:var(--text3);margin-top:10px">* 2026 parcial: Jan–Fev apenas</div>
+    </div>
+
+  </div>
+
+  <!-- Gráfico individual -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+      <div>
+        <div class="chart-title">Evolução Mensal Individual</div>
+        <div class="chart-sub">Selecione um fiscal para ver a produção mês a mês · base: data de fiscalização</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="selTipoFiscal" onchange="updateFiscalSelector()" style="background:var(--navy3);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:6px 10px;border-radius:6px;cursor:pointer;outline:none">
+          <option value="CAMPO">Campo</option>
+          <option value="ADM">ADM</option>
+        </select>
+        <select id="selFiscal" onchange="renderFiscalChart()" style="background:var(--navy3);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:6px 10px;border-radius:6px;cursor:pointer;outline:none;min-width:180px"></select>
+      </div>
+    </div>
+    <div id="fiscalKpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px"></div>
+    <div style="height:200px"><canvas id="chartFiscalProd"></canvas></div>
+    <div style="font-size:0.68rem;color:var(--text3);margin-top:6px">Barras em cinza = fiscal inativo naquele mês · linhas tracejadas = médias anuais</div>
+  </div>
+
+  <!-- Simulador -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Simulador de Faturamento por Composição de Equipe</div>
+    <div class="chart-sub">Média real: total faturado ÷ meses ÷ fiscais ativos · selecione o ano de referência</div>
+
+    <!-- Seletor de ano de referência -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="tab-btn active" id="simRef2024" onclick="setSimRef('2024')">2024 — R$ 61,6K Campo · R$ 18,1K ADM</button>
+      <button class="tab-btn" id="simRef2025" onclick="setSimRef('2025')">2025 — R$ 54K Campo · R$ 11,6K ADM</button>
+      <button class="tab-btn" id="simRefGeral" onclick="setSimRef('geral')">Geral — R$ 60,4K Campo · R$ 13,9K ADM</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:start">
+      <!-- Campo -->
+      <div>
+        <div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Fiscais de Campo</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <button onclick="adjustSim('campo',-1)" style="background:var(--navy3);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.1rem">−</button>
+          <span id="simCampoVal" style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--teal);min-width:36px;text-align:center">5</span>
+          <button onclick="adjustSim('campo',1)" style="background:var(--navy3);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.1rem">+</button>
+        </div>
+        <div id="simCampoRef" style="font-size:0.7rem;color:var(--text3)">× R$ 62K/mês (ref. 2024)</div>
+      </div>
+      <!-- ADM -->
+      <div>
+        <div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Fiscais ADM</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <button onclick="adjustSim('adm',-1)" style="background:var(--navy3);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.1rem">−</button>
+          <span id="simAdmVal" style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent);min-width:36px;text-align:center">14</span>
+          <button onclick="adjustSim('adm',1)" style="background:var(--navy3);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.1rem">+</button>
+        </div>
+        <div id="simAdmRef" style="font-size:0.7rem;color:var(--text3)">× R$ 18K/mês (ref. 2024)</div>
+      </div>
+      <!-- Resultado -->
+      <div>
+        <div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Resultado estimado</div>
+        <div id="simTotal" style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text);line-height:1.1;margin-bottom:4px">—</div>
+        <div id="simBreakdown" style="font-size:0.72rem;color:var(--text2);margin-bottom:10px">—</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:0.62rem;color:var(--text3);margin-bottom:2px">Piso</div>
+            <div id="simConserv" style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--red)">—</div>
+          </div>
+          <div style="background:var(--card2);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:0.62rem;color:var(--text3);margin-bottom:2px">Projeção anual</div>
+            <div id="simAnual" style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--gold)">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela comparativa por ano -->
+    <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:0.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Referência histórica — média real por fiscal/mês</div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:6px 8px;font-size:0.65rem;color:var(--text3);font-weight:600">Ano</th>
+            <th style="text-align:right;padding:6px 8px;font-size:0.65rem;color:var(--teal);font-weight:600">Campo/fiscal/mês</th>
+            <th style="text-align:right;padding:6px 8px;font-size:0.65rem;color:var(--accent);font-weight:600">ADM/fiscal/mês</th>
+            <th style="text-align:right;padding:6px 8px;font-size:0.65rem;color:var(--text3);font-weight:600">Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.07)">
+            <td style="padding:8px 8px;font-weight:600;color:var(--text)">2024</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal);font-weight:700">R$ 61.593</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent);font-weight:700">R$ 18.055</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--text3);font-size:0.72rem">9 Campo · 14 ADM distintos</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.07);background:rgba(46,133,212,0.03)">
+            <td style="padding:8px 8px;font-weight:600;color:var(--text)">2025</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal);font-weight:700">R$ 54.040</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent);font-weight:700">R$ 11.592</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--text3);font-size:0.72rem">7 Campo · 13 ADM distintos</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.07)">
+            <td style="padding:8px 8px;font-weight:600;color:var(--text)">2026 *</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal);font-weight:700">R$ 80.002</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent);font-weight:700">R$ 10.249</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--text3);font-size:0.72rem">* Jan–Abr/2026 (4 meses)</td>
+          </tr>
+          <tr style="border-top:2px solid var(--border)">
+            <td style="padding:8px 8px;font-weight:700;color:var(--gold)">Geral</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:700">R$ 60.387</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:700">R$ 13.881</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--text3);font-size:0.72rem">28 meses completos</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Evolução mensal + heatmap -->
+  <div class="chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Capacidade Realizada × Mês</div>
+      <div class="chart-sub">Volume executado por mês com linha de referência de capacidade máxima</div>
+      <div style="height:220px"><canvas id="chartCapacidade"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Heatmap — Volume Mensal</div>
+      <div class="chart-sub">Itens por fiscal × mês (últimos 12 meses)</div>
+      <div class="heatmap-grid" id="heatmapGrid"></div>
+    </div>
+  </div>
+
+</div><!-- /tela1 -->
+
+<!-- TELA 2: DEMANDA -->
+
+
+
+<!-- TELA3: DISP. ENERGISA ACRE -->
+<div id="tela3" class="screen">
+
+  <!-- Header da tela -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text)">Disp. Energisa Acre</div>
+      <div style="font-size:0.75rem;color:var(--text3);margin-top:2px">Owner's Engineering · Cronograma rv00 · Contrato Energisa Acre</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:rgba(46,133,212,0.1);border:1px solid rgba(46,133,212,0.2);border-radius:6px;padding:6px 14px;font-size:0.75rem;color:var(--accent)">Cronograma rv00</div>
+      <div style="background:rgba(76,175,125,0.1);border:1px solid rgba(76,175,125,0.2);border-radius:6px;padding:6px 14px;font-size:0.75rem;color:var(--green)">Contrato Ativo</div>
+    </div>
+  </div>
+
+  <!-- KPIs principais -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:22px">
+    <div class="kpi-card" style="border-top-color:var(--teal)">
+      <div class="kpi-label">Faturamento Mensal</div>
+      <div class="kpi-value" style="font-size:1.35rem;color:var(--teal)">R$ 262K</div>
+      <div class="kpi-sub">Previsto com REIDI · equipe plena</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--accent)">
+      <div class="kpi-label">Total do Contrato</div>
+      <div class="kpi-value" style="font-size:1.35rem">R$ 6.94M</div>
+      <div class="kpi-sub">26 meses · Mai/2026 a Jun/2028</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--accent)">
+      <div class="kpi-label">Equipe Planejada</div>
+      <div class="kpi-value" style="font-size:1.4rem">23</div>
+      <div class="kpi-sub">20 ADM · 3 Campo</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--green)">
+      <div class="kpi-label">Confirmados</div>
+      <div class="kpi-value" style="font-size:1.4rem;color:var(--green)">13</div>
+      <div class="kpi-sub">10 a contratar (TBD)</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--teal)">
+      <div class="kpi-label">Custo ADM/mês</div>
+      <div class="kpi-value" style="font-size:1.2rem">R$ 237K</div>
+      <div class="kpi-sub">20 profissionais escritório</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--teal)">
+      <div class="kpi-label">Custo Campo/mês</div>
+      <div class="kpi-value" style="font-size:1.2rem">R$ 32K</div>
+      <div class="kpi-sub">3 profissionais campo</div>
+    </div>
+  </div>
+
+  <!-- Comparativo ADM x Campo -->
+  <div class="section-title">Composição da Equipe</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+    <div style="background:rgba(46,133,212,0.06);border:1px solid rgba(46,133,212,0.2);border-radius:10px;padding:16px 18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block"></span>
+        <span style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:var(--accent)">ADM</span>
+        <span style="font-size:0.75rem;color:var(--text3)">20 profissionais · escritório</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Mensal</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text)">R$ 237K</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">% do Total</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--accent)">90.4%</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Total</div><div style="font-size:0.9rem;color:var(--text2)">R$ 6.16M</div></div>
+      </div>
+    </div>
+    <div style="background:rgba(46,196,182,0.06);border:1px solid rgba(46,196,182,0.2);border-radius:10px;padding:16px 18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block"></span>
+        <span style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:var(--teal)">CAMPO</span>
+        <span style="font-size:0.75rem;color:var(--text3)">3 profissionais · fiscalização</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Mensal</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text)">R$ 32K</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">% do Total</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--teal)">12.4%</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Total</div><div style="font-size:0.9rem;color:var(--text2)">R$ 0.84M</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico mensal -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Cronograma Físico-Financeiro — Faturamento Mensal Previsto</div>
+    <div class="chart-sub">Valores com benefício REIDI · Mai/2026 a Jun/2028 · ramp-up no primeiro mês</div>
+    <div style="height:190px"><canvas id="chartAcreProj"></canvas></div>
+  </div>
+
+  <!-- Tabela de equipe -->
+  <div class="section-title">Relação de Profissionais — Cronograma rv00</div>
+  <div class="chart-card" style="margin-bottom:20px">
+    <div style="max-height:400px;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card)">
+            <th style="text-align:left;padding:8px 8px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Cargo</th>
+            <th style="text-align:center;padding:8px 6px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;font-weight:600">Tipo</th>
+            <th style="text-align:center;padding:8px 8px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;font-weight:600">Qtd</th>
+            <th style="text-align:right;padding:8px 8px;font-size:0.62rem;color:var(--teal);text-transform:uppercase;font-weight:600">R$/mês</th>
+            <th style="text-align:right;padding:8px 8px;font-size:0.62rem;color:var(--gold);text-transform:uppercase;font-weight:600">Total/mês</th>
+            <th style="text-align:left;padding:8px 8px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;font-weight:600">Profissionais</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Gerente</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">1</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 30,798</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 30,798</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">1× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Coordenadora de Projetos</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">1</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 27,532</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 27,532</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">1× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Técnico Eletrotécnio III</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-campo">Campo</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">2</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 11,203</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 22,406</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">2× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">técnico planejamento produção</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">10</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 10,073</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 100,730</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">Anny Isabele Martins Alves- home office (parana), Antônio Gabriel Alves de Lima, victor Lima +7</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Técnico de Segurança</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-campo">Campo</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">1</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 10,073</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 10,073</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">1× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Analista Administrativo</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">5</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 9,319</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 46,595</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">Jonathan Elian, Deivide Douglas Cavalcante, Lucas Lamounier de Almeida Souza, 2× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Assistente Administrativo</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">3</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--teal)">R$ 8,063</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 24,189</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">3× A contratar</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid var(--border)">
+            <td colspan="2" style="padding:10px 8px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;color:var(--text)">TOTAL MENSAL (REIDI)</td>
+            <td style="text-align:center;padding:10px 8px;color:var(--text);font-weight:600">23</td>
+            <td></td>
+            <td style="text-align:right;padding:10px 8px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--green)">R$ 262K</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div style="font-size:0.68rem;color:var(--text3);margin-top:8px">* Valores com benefício REIDI · TBD = a contratar · Cronograma revisão 00</div>
+  </div>
+
+</div><!-- /tela3 -->
+
+<!-- TELA4: DISP. ENERGISA TOCANTINS -->
+<div id="tela4" class="screen">
+
+  <!-- Header da tela -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text)">Disp. Energisa Tocantins</div>
+      <div style="font-size:0.75rem;color:var(--text3);margin-top:2px">Owner's Engineering · Cronograma rv00 · Contrato 2049 · Energisa Tocantins</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:rgba(46,133,212,0.1);border:1px solid rgba(46,133,212,0.2);border-radius:6px;padding:6px 14px;font-size:0.75rem;color:var(--accent)">Cronograma rv00</div>
+      <div style="background:rgba(76,175,125,0.1);border:1px solid rgba(76,175,125,0.2);border-radius:6px;padding:6px 14px;font-size:0.75rem;color:var(--green)">Contrato Ativo</div>
+    </div>
+  </div>
+
+  <!-- KPIs principais -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:22px">
+    <div class="kpi-card" style="border-top-color:var(--gold)">
+      <div class="kpi-label">Faturamento Mensal</div>
+      <div class="kpi-value" style="font-size:1.35rem;color:var(--gold)">R$ 332K</div>
+      <div class="kpi-sub">Previsto com REIDI · equipe plena</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--teal)">
+      <div class="kpi-label">Total do Contrato</div>
+      <div class="kpi-value" style="font-size:1.35rem">R$ 5.37M</div>
+      <div class="kpi-sub">16 meses · Mai/2026 a Ago/2027</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--accent)">
+      <div class="kpi-label">Equipe Planejada</div>
+      <div class="kpi-value" style="font-size:1.4rem">32</div>
+      <div class="kpi-sub">28 ADM · 4 Campo</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--green)">
+      <div class="kpi-label">Confirmados</div>
+      <div class="kpi-value" style="font-size:1.4rem;color:var(--green)">0</div>
+      <div class="kpi-sub">32 a contratar (TBD)</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--teal)">
+      <div class="kpi-label">Custo ADM/mês</div>
+      <div class="kpi-value" style="font-size:1.2rem">R$ 286K</div>
+      <div class="kpi-sub">28 profissionais escritório</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--teal)">
+      <div class="kpi-label">Custo Campo/mês</div>
+      <div class="kpi-value" style="font-size:1.2rem">R$ 46K</div>
+      <div class="kpi-sub">4 profissionais campo</div>
+    </div>
+  </div>
+
+  <!-- Comparativo ADM x Campo -->
+  <div class="section-title">Composição da Equipe</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+    <div style="background:rgba(46,133,212,0.06);border:1px solid rgba(46,133,212,0.2);border-radius:10px;padding:16px 18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block"></span>
+        <span style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:var(--accent)">ADM</span>
+        <span style="font-size:0.75rem;color:var(--text3)">28 profissionais · escritório</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Mensal</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text)">R$ 286K</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">% do Total</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--accent)">86.0%</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Total</div><div style="font-size:0.9rem;color:var(--text2)">R$ 4.57M</div></div>
+      </div>
+    </div>
+    <div style="background:rgba(46,196,182,0.06);border:1px solid rgba(46,196,182,0.2);border-radius:10px;padding:16px 18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block"></span>
+        <span style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:var(--teal)">CAMPO</span>
+        <span style="font-size:0.75rem;color:var(--text3)">4 profissionais · fiscalização</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Mensal</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text)">R$ 46K</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">% do Total</div><div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--teal)">14.0%</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Custo Total</div><div style="font-size:0.9rem;color:var(--text2)">R$ 0.74M</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico mensal -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Cronograma Físico-Financeiro — Faturamento Mensal Previsto</div>
+    <div class="chart-sub">Valores com benefício REIDI · Mai/2026 a Ago/2027 · ramp-up no primeiro mês</div>
+    <div style="height:190px"><canvas id="chartTocantinsProj"></canvas></div>
+  </div>
+
+  <!-- Tabela de equipe -->
+  <div class="section-title">Relação de Profissionais — Cronograma rv00</div>
+  <div class="chart-card" style="margin-bottom:20px">
+    <div style="max-height:400px;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card)">
+            <th style="text-align:left;padding:8px 8px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Cargo</th>
+            <th style="text-align:center;padding:8px 6px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;font-weight:600">Tipo</th>
+            <th style="text-align:center;padding:8px 8px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;font-weight:600">Qtd</th>
+            <th style="text-align:right;padding:8px 8px;font-size:0.62rem;color:var(--gold);text-transform:uppercase;font-weight:600">R$/mês</th>
+            <th style="text-align:right;padding:8px 8px;font-size:0.62rem;color:var(--gold);text-transform:uppercase;font-weight:600">Total/mês</th>
+            <th style="text-align:left;padding:8px 8px;font-size:0.62rem;color:var(--text3);text-transform:uppercase;font-weight:600">Profissionais</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Gerente</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">1</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 30,798</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 30,798</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">1× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Técnico de Segurança</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-campo">Campo</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">2</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 12,183</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 24,366</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">2× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Técnico Eletrotécnio III</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-campo">Campo</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">2</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 11,203</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 22,406</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">2× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">técnico planejamento produção</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">17</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 10,073</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 171,241</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">17× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Analista Administrativo</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">2</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 9,319</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 18,638</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">2× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Assistente Administrativo</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">4</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 8,063</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 32,252</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">4× A contratar</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(46,133,212,0.06)" onmouseover="this.style.background='rgba(46,133,212,0.05)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 8px;color:var(--text);font-size:0.8rem">Assistente Logistico</td>
+            <td style="text-align:center;padding:8px 4px"><span class="tipo-badge tipo-adm">ADM</span></td>
+            <td style="text-align:center;padding:8px 8px;color:var(--text2)">4</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--accent)">R$ 8,063</td>
+            <td style="text-align:right;padding:8px 8px;color:var(--gold);font-weight:600">R$ 32,252</td>
+            <td style="padding:8px 8px;color:var(--text3);font-size:0.72rem">4× A contratar</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid var(--border)">
+            <td colspan="2" style="padding:10px 8px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;color:var(--text)">TOTAL MENSAL (REIDI)</td>
+            <td style="text-align:center;padding:10px 8px;color:var(--text);font-weight:600">32</td>
+            <td></td>
+            <td style="text-align:right;padding:10px 8px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--green)">R$ 332K</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div style="font-size:0.68rem;color:var(--text3);margin-top:8px">* Valores com benefício REIDI · TBD = a contratar · Cronograma revisão 00</div>
+  </div>
+
+</div><!-- /tela4 -->
+
+
+</main>
+
+<!-- MODAL DRILL-DOWN -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-grid" id="modalKpis"></div>
+    <div id="modalCharts" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div><div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Evolução Mensal</div><canvas id="modalChartLine" style="max-height:200px"></canvas></div>
+      <div><div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Por Tipo de Obra</div><canvas id="modalChartBar" style="max-height:200px"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// DATA
+// =========================================================
+const PROD_ANOS = {"CAMPO": [{"name": "JOSÉ MESQUITA", "anos": {"2024": {"total": 832608.5, "media": 83260.85, "meses": 10}, "2025": {"total": 858288.52, "media": 71524.04, "meses": 12}, "2026": {"total": 472476.97, "media": 118119.24, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 10385.41, "2024-03": 65979.0, "2024-04": 0.0, "2024-05": 96272.59, "2024-06": 132705.43, "2024-07": 109620.69, "2024-08": 103814.99, "2024-09": 77077.66, "2024-10": 89117.65, "2024-11": 59832.77, "2024-12": 87802.3, "2025-01": 82542.77, "2025-02": 63917.06, "2025-03": 63730.13, "2025-04": 139845.9, "2025-05": 13609.26, "2025-06": 75047.87, "2025-07": 38294.52, "2025-08": 54814.4, "2025-09": 77265.8, "2025-10": 99883.99, "2025-11": 60317.83, "2025-12": 89018.99, "2026-01": 172344.82, "2026-02": 158828.91, "2026-03": 27497.61, "2026-04": 113805.63}}, {"name": "JEAN LOREDO", "anos": {"2024": {"total": 974352.86, "media": 81196.07, "meses": 12}, "2025": {"total": 662588.68, "media": 55215.72, "meses": 12}, "2026": {"total": 495256.93, "media": 123814.23, "meses": 4}}, "serie": {"2024-01": 439.28, "2024-02": 49081.19, "2024-03": 44538.15, "2024-04": 39348.96, "2024-05": 205699.93, "2024-06": 113488.19, "2024-07": 81512.49, "2024-08": 131512.29, "2024-09": 119193.55, "2024-10": 80255.64, "2024-11": 45070.65, "2024-12": 64212.54, "2025-01": 73855.71, "2025-02": 12396.05, "2025-03": 37277.57, "2025-04": 76125.95, "2025-05": 68332.36, "2025-06": 72913.0, "2025-07": 51911.91, "2025-08": 38337.61, "2025-09": 52805.92, "2025-10": 71708.6, "2025-11": 46261.74, "2025-12": 60662.27, "2026-01": 85191.34, "2026-02": 85135.23, "2026-03": 199406.5, "2026-04": 125523.86}}, {"name": "EDSON SILVA", "anos": {"2024": {"total": 774660.58, "media": 64555.05, "meses": 12}, "2025": {"total": 625420.23, "media": 52118.35, "meses": 12}, "2026": {"total": 188458.51, "media": 47114.63, "meses": 4}}, "serie": {"2024-01": 1463.15, "2024-02": 32454.71, "2024-03": 62486.73, "2024-04": 72943.64, "2024-05": 86210.73, "2024-06": 66561.5, "2024-07": 93295.99, "2024-08": 76331.54, "2024-09": 58871.77, "2024-10": 58566.48, "2024-11": 67086.6, "2024-12": 98387.74, "2025-01": 88016.87, "2025-02": 72209.31, "2025-03": 74618.6, "2025-04": 64970.39, "2025-05": 41765.51, "2025-06": 40175.22, "2025-07": 29556.98, "2025-08": 38594.23, "2025-09": 39509.83, "2025-10": 39174.36, "2025-11": 54563.49, "2025-12": 42265.44, "2026-01": 41693.04, "2026-02": 52527.14, "2026-03": 54074.21, "2026-04": 40164.11}}, {"name": "MESSIAS FILHO", "anos": {"2024": {"total": 685973.75, "media": 57164.48, "meses": 12}, "2025": {"total": 595870.97, "media": 49655.91, "meses": 12}, "2026": {"total": 186465.36, "media": 46616.34, "meses": 4}}, "serie": {"2024-01": 14056.39, "2024-02": 39878.6, "2024-03": 54878.19, "2024-04": 25823.92, "2024-05": 77181.48, "2024-06": 87306.1, "2024-07": 84285.37, "2024-08": 69840.58, "2024-09": 68665.19, "2024-10": 70274.53, "2024-11": 52440.06, "2024-12": 41343.35, "2025-01": 58303.73, "2025-02": 75003.82, "2025-03": 49166.14, "2025-04": 36953.2, "2025-05": 48955.03, "2025-06": 52039.56, "2025-07": 48455.86, "2025-08": 48235.59, "2025-09": 35775.01, "2025-10": 62340.26, "2025-11": 34089.01, "2025-12": 46553.76, "2026-01": 75760.74, "2026-02": 36681.85, "2026-03": 47596.72, "2026-04": 26426.05}}, {"name": "BRUNO MESQUITA", "anos": {"2024": {"total": 438021.13, "media": 39820.1, "meses": 11}, "2025": {"total": 578548.69, "media": 48212.39, "meses": 12}, "2026": {"total": 257372.98, "media": 64343.25, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 17883.27, "2024-03": 40002.14, "2024-04": 65253.14, "2024-05": 31944.67, "2024-06": 40853.5, "2024-07": 54298.02, "2024-08": 43012.65, "2024-09": 37821.96, "2024-10": 31519.15, "2024-11": 35729.82, "2024-12": 39702.82, "2025-01": 39063.56, "2025-02": 39136.94, "2025-03": 43969.78, "2025-04": 40252.16, "2025-05": 43780.16, "2025-06": 42314.74, "2025-07": 41972.32, "2025-08": 44371.79, "2025-09": 70747.66, "2025-10": 70828.18, "2025-11": 47723.87, "2025-12": 54387.53, "2026-01": 49623.18, "2026-02": 96854.51, "2026-03": 47354.18, "2026-04": 63541.11}}, {"name": "GILCIMAR PAULA", "anos": {"2024": {"total": 496980.86, "media": 70997.27, "meses": 7}, "2025": {"total": 443290.59, "media": 49254.51, "meses": 9}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 57577.56, "2024-07": 113088.51, "2024-08": 67657.07, "2024-09": 63424.3, "2024-10": 67561.23, "2024-11": 59497.7, "2024-12": 68174.49, "2025-01": 76505.05, "2025-02": 63827.43, "2025-03": 71295.76, "2025-04": 58609.43, "2025-05": 37909.1, "2025-06": 38336.4, "2025-07": 83350.4, "2025-08": 7513.24, "2025-09": 5943.78, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "AGEU CORDEIRO", "anos": {"2024": {"total": 568535.75, "media": 51685.07, "meses": 11}, "2025": {"total": 397074.75, "media": 49634.34, "meses": 8}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 7965.96, "2024-03": 65766.86, "2024-04": 109382.82, "2024-05": 30854.14, "2024-06": 44306.64, "2024-07": 69229.1, "2024-08": 54050.33, "2024-09": 45276.02, "2024-10": 47050.32, "2024-11": 39310.78, "2024-12": 55342.77, "2025-01": 52006.55, "2025-02": 62534.82, "2025-03": 69515.63, "2025-04": 46842.05, "2025-05": 42341.21, "2025-06": 35987.44, "2025-07": 46129.61, "2025-08": 41717.44, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "BENEDITO EVANDRO", "anos": {"2024": {"total": 126353.44, "media": 31588.36, "meses": 4}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 29681.09, "2024-02": 28203.41, "2024-03": 68051.39, "2024-04": 0.0, "2024-05": 417.55, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}], "ADM": [{"name": "CHRISTIANO LOBÃO", "anos": {"2024": {"total": 3311.5, "media": 1655.75, "meses": 2}, "2025": {"total": 242240.34, "media": 20186.69, "meses": 12}, "2026": {"total": 55581.23, "media": 13895.31, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 398.09, "2024-12": 2913.41, "2025-01": 26191.76, "2025-02": 22997.28, "2025-03": 25168.86, "2025-04": 12102.68, "2025-05": 22594.16, "2025-06": 23121.93, "2025-07": 17494.02, "2025-08": 15613.7, "2025-09": 29250.25, "2025-10": 18202.96, "2025-11": 16398.21, "2025-12": 13104.51, "2026-01": 14694.9, "2026-02": 11717.55, "2026-03": 17584.66, "2026-04": 11584.12}}, {"name": "FRAN CARNEIRO", "anos": {"2024": {"total": 67110.38, "media": 22370.13, "meses": 3}, "2025": {"total": 214611.61, "media": 17884.3, "meses": 12}, "2026": {"total": 37947.62, "media": 9486.91, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 8450.09, "2024-11": 26272.82, "2024-12": 32387.47, "2025-01": 23799.03, "2025-02": 19711.87, "2025-03": 21212.08, "2025-04": 11143.49, "2025-05": 12009.86, "2025-06": 12108.82, "2025-07": 14816.52, "2025-08": 12186.81, "2025-09": 27351.94, "2025-10": 29153.0, "2025-11": 20096.9, "2025-12": 11021.31, "2026-01": 10839.82, "2026-02": 11105.47, "2026-03": 7918.69, "2026-04": 8083.65}}, {"name": "ANA VILMA", "anos": {"2024": {"total": 0.0, "media": 0, "meses": 0}, "2025": {"total": 176298.42, "media": 17629.84, "meses": 10}, "2026": {"total": 83736.9, "media": 20934.22, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 3565.61, "2025-04": 18510.82, "2025-05": 25424.48, "2025-06": 12204.62, "2025-07": 10260.08, "2025-08": 14996.87, "2025-09": 40008.67, "2025-10": 25585.13, "2025-11": 11882.2, "2025-12": 13859.94, "2026-01": 16088.59, "2026-02": 18681.51, "2026-03": 19766.71, "2026-04": 29200.09}}, {"name": "SARAH CARDOSO", "anos": {"2024": {"total": 49167.6, "media": 6145.95, "meses": 8}, "2025": {"total": 159604.83, "media": 13300.4, "meses": 12}, "2026": {"total": 7425.35, "media": 7425.35, "meses": 1}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 3475.74, "2024-06": 2689.05, "2024-07": 3935.65, "2024-08": 4813.26, "2024-09": 12946.96, "2024-10": 9916.03, "2024-11": 7192.75, "2024-12": 4198.15, "2025-01": 5826.82, "2025-02": 13101.12, "2025-03": 21309.29, "2025-04": 20631.81, "2025-05": 15500.29, "2025-06": 11514.24, "2025-07": 10702.11, "2025-08": 12125.46, "2025-09": 14691.26, "2025-10": 10681.32, "2025-11": 14114.51, "2025-12": 9406.58, "2026-01": 7425.35, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "ALINE ARAÚJO", "anos": {"2024": {"total": 121954.23, "media": 20325.7, "meses": 6}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 51313.59, "2024-02": 59888.66, "2024-03": 235.23, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 6524.0, "2024-10": 0.0, "2024-11": 1434.91, "2024-12": 2557.83, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "TEILOR CAMPOS", "anos": {"2024": {"total": 161879.14, "media": 13489.93, "meses": 12}, "2025": {"total": 112476.8, "media": 9373.07, "meses": 12}, "2026": {"total": 12587.35, "media": 4195.78, "meses": 3}}, "serie": {"2024-01": 6447.96, "2024-02": 61920.2, "2024-03": 3411.19, "2024-04": 3017.03, "2024-05": 4016.91, "2024-06": 5118.77, "2024-07": 25142.46, "2024-08": 15906.55, "2024-09": 10146.47, "2024-10": 18400.48, "2024-11": 3963.09, "2024-12": 4388.03, "2025-01": 11644.49, "2025-02": 11727.38, "2025-03": 12537.25, "2025-04": 796.99, "2025-05": 10431.36, "2025-06": 8508.48, "2025-07": 7717.42, "2025-08": 9723.75, "2025-09": 11435.69, "2025-10": 7656.05, "2025-11": 10155.06, "2025-12": 10142.87, "2026-01": 3189.23, "2026-02": 0.0, "2026-03": 7078.31, "2026-04": 2319.81}}, {"name": "FABRICIA SILVA", "anos": {"2024": {"total": 136558.7, "media": 12414.43, "meses": 11}, "2025": {"total": 104275.99, "media": 8689.67, "meses": 12}, "2026": {"total": 21187.26, "media": 5296.81, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 13087.45, "2024-03": 6188.47, "2024-04": 22401.61, "2024-05": 18058.76, "2024-06": 13526.21, "2024-07": 17226.39, "2024-08": 5935.16, "2024-09": 11255.09, "2024-10": 9192.23, "2024-11": 5319.93, "2024-12": 14367.39, "2025-01": 13598.35, "2025-02": 10223.65, "2025-03": 12640.84, "2025-04": 18985.38, "2025-05": 8563.15, "2025-06": 3243.19, "2025-07": 4561.32, "2025-08": 3262.15, "2025-09": 5301.0, "2025-10": 10801.14, "2025-11": 5680.32, "2025-12": 7415.5, "2026-01": 6495.86, "2026-02": 2759.55, "2026-03": 5985.52, "2026-04": 5946.33}}, {"name": "BRUNA CAMPOS", "anos": {"2024": {"total": 68673.2, "media": 17168.3, "meses": 4}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 22339.62, "2024-03": 10811.6, "2024-04": 35449.61, "2024-05": 0.0, "2024-06": 72.37, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "EDNARA NOGUEIRA", "anos": {"2024": {"total": 67887.97, "media": 22629.32, "meses": 3}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 9734.29, "2024-02": 28233.18, "2024-03": 0.0, "2024-04": 29920.5, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "MARCOS EBERTH", "anos": {"2024": {"total": 529093.33, "media": 44091.11, "meses": 12}, "2025": {"total": 57960.87, "media": 5796.09, "meses": 10}, "2026": {"total": 10052.08, "media": 2513.02, "meses": 4}}, "serie": {"2024-01": 49996.99, "2024-02": 70661.92, "2024-03": 69153.95, "2024-04": 52275.19, "2024-05": 38151.63, "2024-06": 41380.38, "2024-07": 57934.83, "2024-08": 80917.7, "2024-09": 41531.71, "2024-10": 14077.87, "2024-11": 5365.16, "2024-12": 7646.0, "2025-01": 3954.75, "2025-02": 14860.35, "2025-03": 8487.29, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 8136.41, "2025-07": 4049.24, "2025-08": 7396.74, "2025-09": 6334.64, "2025-10": 1365.55, "2025-11": 2351.78, "2025-12": 1024.11, "2026-01": 4362.18, "2026-02": 1137.96, "2026-03": 3669.52, "2026-04": 882.42}}, {"name": "NATHALIA MARÇAL", "anos": {"2024": {"total": 0.0, "media": 0, "meses": 0}, "2025": {"total": 27312.44, "media": 13656.22, "meses": 2}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 19971.62, "2025-08": 7340.82, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "JOÃO MARCOS", "anos": {"2024": {"total": 0.0, "media": 0, "meses": 0}, "2025": {"total": 18869.51, "media": 9434.75, "meses": 2}, "2026": {"total": 59429.89, "media": 14857.47, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 6900.48, "2025-12": 11969.03, "2026-01": 14412.63, "2026-02": 17845.1, "2026-03": 15409.82, "2026-04": 11762.33}}, {"name": "MIKAELLY OLIVEIRA", "anos": {"2024": {"total": 146082.7, "media": 20868.96, "meses": 7}, "2025": {"total": 16348.62, "media": 3269.72, "meses": 5}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 7611.43, "2024-04": 13338.36, "2024-05": 21503.83, "2024-06": 27952.95, "2024-07": 5870.8, "2024-08": 23160.2, "2024-09": 46645.13, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 2759.48, "2025-03": 11559.78, "2025-04": 1839.7, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 75.86, "2025-09": 113.8, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "RAFAEL PEREIRA", "anos": {"2024": {"total": 176450.86, "media": 16040.99, "meses": 11}, "2025": {"total": 13316.91, "media": 2663.38, "meses": 5}, "2026": {"total": 12233.55, "media": 12233.55, "meses": 1}}, "serie": {"2024-01": 38778.76, "2024-02": 25093.64, "2024-03": 9359.0, "2024-04": 0.0, "2024-05": 10310.84, "2024-06": 4335.81, "2024-07": 10453.05, "2024-08": 21706.29, "2024-09": 15021.71, "2024-10": 17882.7, "2024-11": 14805.57, "2024-12": 8703.5, "2025-01": 4209.99, "2025-02": 615.73, "2025-03": 7020.49, "2025-04": 398.29, "2025-05": 1072.42, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 12233.55}}, {"name": "MATHEUS RICARDO", "anos": {"2024": {"total": 13292.65, "media": 13292.65, "meses": 1}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 13292.65, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "ADRIA LORENA", "anos": {"2024": {"total": 0.0, "media": 0, "meses": 0}, "2025": {"total": 10924.4, "media": 2731.1, "meses": 4}, "2026": {"total": 1163.18, "media": 581.59, "meses": 2}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 3527.68, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 4134.59, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 3034.56, "2025-12": 227.58, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 80.21, "2026-04": 1082.97}}, {"name": "RICARDO SILVA", "anos": {"2024": {"total": 8094.38, "media": 4047.19, "meses": 2}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 3682.32, "2024-12": 4412.06, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "GEOVANE FREITAS", "anos": {"2024": {"total": 51181.26, "media": 8530.21, "meses": 6}, "2025": {"total": 4976.11, "media": 2488.05, "meses": 2}, "2026": {"total": 0.0, "media": 0, "meses": 0}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 3933.07, "2024-04": 16500.67, "2024-05": 2391.04, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 19578.79, "2024-10": 0.0, "2024-11": 72.38, "2024-12": 8705.3, "2025-01": 1483.79, "2025-02": 3492.33, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 0.0, "2026-04": 0.0}}, {"name": "CAYRON ALEX", "anos": {"2024": {"total": 0.0, "media": 0, "meses": 0}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 47669.86, "media": 11917.47, "meses": 4}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 7969.19, "2026-02": 8408.86, "2026-03": 9704.17, "2026-04": 21587.64}}, {"name": "JULIO CESAR", "anos": {"2024": {"total": 0.0, "media": 0, "meses": 0}, "2025": {"total": 0.0, "media": 0, "meses": 0}, "2026": {"total": 30194.97, "media": 15097.49, "meses": 2}}, "serie": {"2024-01": 0.0, "2024-02": 0.0, "2024-03": 0.0, "2024-04": 0.0, "2024-05": 0.0, "2024-06": 0.0, "2024-07": 0.0, "2024-08": 0.0, "2024-09": 0.0, "2024-10": 0.0, "2024-11": 0.0, "2024-12": 0.0, "2025-01": 0.0, "2025-02": 0.0, "2025-03": 0.0, "2025-04": 0.0, "2025-05": 0.0, "2025-06": 0.0, "2025-07": 0.0, "2025-08": 0.0, "2025-09": 0.0, "2025-10": 0.0, "2025-11": 0.0, "2025-12": 0.0, "2026-01": 0.0, "2026-02": 0.0, "2026-03": 11107.02, "2026-04": 19087.95}}]};
+const ALL_MONTHS = ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"];
+
+const RAW = {"kpis": {"total_valor": 13797764.02, "total_itens": 752709.74, "fiscais_ativos": 28, "media_mensal": 492777.29, "n_adm": 20, "n_campo": 8, "ticket_medio": 18.33}, "anos": ["2024", "2025", "2026"], "meses_por_ano": {"2024": [{"num": 1, "nome": "Janeiro"}, {"num": 2, "nome": "Fevereiro"}, {"num": 3, "nome": "Março"}, {"num": 4, "nome": "Abril"}, {"num": 5, "nome": "Maio"}, {"num": 6, "nome": "Junho"}, {"num": 7, "nome": "Julho"}, {"num": 8, "nome": "Agosto"}, {"num": 9, "nome": "Setembro"}, {"num": 10, "nome": "Outubro"}, {"num": 11, "nome": "Novembro"}, {"num": 12, "nome": "Dezembro"}], "2025": [{"num": 1, "nome": "Janeiro"}, {"num": 2, "nome": "Fevereiro"}, {"num": 3, "nome": "Março"}, {"num": 4, "nome": "Abril"}, {"num": 5, "nome": "Maio"}, {"num": 6, "nome": "Junho"}, {"num": 7, "nome": "Julho"}, {"num": 8, "nome": "Agosto"}, {"num": 9, "nome": "Setembro"}, {"num": 10, "nome": "Outubro"}, {"num": 11, "nome": "Novembro"}, {"num": 12, "nome": "Dezembro"}], "2026": [{"num": 1, "nome": "Janeiro"}, {"num": 2, "nome": "Fevereiro"}, {"num": 3, "nome": "Março"}, {"num": 4, "nome": "Abril"}]}, "fiscais_list": ["ADRIA LORENA", "AGEU CORDEIRO", "ALINE ARAÚJO", "ANA VILMA", "BENEDITO EVANDRO", "BRUNA CAMPOS", "BRUNO MESQUITA", "CAYRON ALEX", "CHRISTIANO LOBÃO", "EDNARA NOGUEIRA", "EDSON SILVA", "FABRICIA SILVA", "FRAN CARNEIRO", "GEOVANE FREITAS", "GILCIMAR PAULA", "JEAN LOREDO", "JOSÉ MESQUITA", "JOÃO MARCOS", "JULIO CESAR", "MARCOS EBERTH", "MATHEUS RICARDO", "MESSIAS FILHO", "MIKAELLY OLIVEIRA", "NATHALIA MARÇAL", "RAFAEL PEREIRA", "RICARDO SILVA", "SARAH CARDOSO", "TEILOR CAMPOS"], "tipos_obra": ["CONSTRUÇÃO", "INSPEÇÃO", "LPT", "MANUTENÇÃO", "MLPA"], "monthly_total": [{"p": "2024-01", "label": "Jan/24", "valor": 201911.49}, {"p": "2024-02", "label": "Fev/24", "valor": 467077.22}, {"p": "2024-03", "label": "Mar/24", "valor": 512406.39}, {"p": "2024-04", "label": "Abr/24", "valor": 485655.45}, {"p": "2024-05", "label": "Mai/24", "valor": 626489.85}, {"p": "2024-06", "label": "Jun/24", "valor": 637874.47}, {"p": "2024-07", "label": "Jul/24", "valor": 725893.35}, {"p": "2024-08", "label": "Ago/24", "valor": 698658.61}, {"p": "2024-09", "label": "Set/24", "valor": 647272.96}, {"p": "2024-10", "label": "Out/24", "valor": 522264.41}, {"p": "2024-11", "label": "Nov/24", "valor": 427475.4}, {"p": "2024-12", "label": "Dez/24", "valor": 545245.16}, {"p": "2025-01", "label": "Jan/25", "valor": 561003.22}, {"p": "2025-02", "label": "Fev/25", "valor": 488514.6}, {"p": "2025-03", "label": "Mar/25", "valor": 536602.77}, {"p": "2025-04", "label": "Abr/25", "valor": 548008.24}, {"p": "2025-05", "label": "Mai/25", "valor": 392288.33}, {"p": "2025-06", "label": "Jun/25", "valor": 439786.52}, {"p": "2025-07", "label": "Jul/25", "valor": 429243.94}, {"p": "2025-08", "label": "Ago/25", "valor": 356306.47}, {"p": "2025-09", "label": "Set/25", "valor": 416535.25}, {"p": "2025-10", "label": "Out/25", "valor": 447380.55}, {"p": "2025-11", "label": "Nov/25", "valor": 333569.96}, {"p": "2025-12", "label": "Dez/25", "valor": 371059.42}, {"p": "2026-01", "label": "Jan/26", "valor": 510090.85}, {"p": "2026-02", "label": "Fev/26", "valor": 501683.66}, {"p": "2026-03", "label": "Mar/26", "valor": 474233.85}, {"p": "2026-04", "label": "Abr/26", "valor": 493231.62}], "monthly_adm": [{"p": "2024-01", "label": "Jan/24", "valor": 156271.59}, {"p": "2024-02", "label": "Fev/24", "valor": 281224.68}, {"p": "2024-03", "label": "Mar/24", "valor": 110703.94}, {"p": "2024-04", "label": "Abr/24", "valor": 172902.97}, {"p": "2024-05", "label": "Mai/24", "valor": 97908.76}, {"p": "2024-06", "label": "Jun/24", "valor": 95075.56}, {"p": "2024-07", "label": "Jul/24", "valor": 120563.18}, {"p": "2024-08", "label": "Ago/24", "valor": 152439.16}, {"p": "2024-09", "label": "Set/24", "valor": 176942.51}, {"p": "2024-10", "label": "Out/24", "valor": 77919.4}, {"p": "2024-11", "label": "Nov/24", "valor": 68507.02}, {"p": "2024-12", "label": "Dez/24", "valor": 90279.15}, {"p": "2025-01", "label": "Jan/25", "valor": 90708.99}, {"p": "2025-02", "label": "Fev/25", "valor": 99489.18}, {"p": "2025-03", "label": "Mar/25", "valor": 127029.16}, {"p": "2025-04", "label": "Abr/25", "valor": 84409.16}, {"p": "2025-05", "label": "Mai/25", "valor": 95595.71}, {"p": "2025-06", "label": "Jun/25", "valor": 82972.28}, {"p": "2025-07", "label": "Jul/25", "valor": 89572.34}, {"p": "2025-08", "label": "Ago/25", "valor": 82722.17}, {"p": "2025-09", "label": "Set/25", "valor": 134487.25}, {"p": "2025-10", "label": "Out/25", "valor": 103445.16}, {"p": "2025-11", "label": "Nov/25", "valor": 90614.03}, {"p": "2025-12", "label": "Dez/25", "valor": 78171.43}, {"p": "2026-01", "label": "Jan/26", "valor": 85477.73}, {"p": "2026-02", "label": "Fev/26", "valor": 71656.01}, {"p": "2026-03", "label": "Mar/26", "valor": 98304.63}, {"p": "2026-04", "label": "Abr/26", "valor": 123770.86}], "monthly_campo": [{"p": "2024-01", "label": "Jan/24", "valor": 45639.91}, {"p": "2024-02", "label": "Fev/24", "valor": 185852.54}, {"p": "2024-03", "label": "Mar/24", "valor": 401702.45}, {"p": "2024-04", "label": "Abr/24", "valor": 312752.48}, {"p": "2024-05", "label": "Mai/24", "valor": 528581.1}, {"p": "2024-06", "label": "Jun/24", "valor": 542798.92}, {"p": "2024-07", "label": "Jul/24", "valor": 605330.17}, {"p": "2024-08", "label": "Ago/24", "valor": 546219.45}, {"p": "2024-09", "label": "Set/24", "valor": 470330.45}, {"p": "2024-10", "label": "Out/24", "valor": 444345.01}, {"p": "2024-11", "label": "Nov/24", "valor": 358968.38}, {"p": "2024-12", "label": "Dez/24", "valor": 454966.02}, {"p": "2025-01", "label": "Jan/25", "valor": 470294.23}, {"p": "2025-02", "label": "Fev/25", "valor": 389025.42}, {"p": "2025-03", "label": "Mar/25", "valor": 409573.61}, {"p": "2025-04", "label": "Abr/25", "valor": 463599.08}, {"p": "2025-05", "label": "Mai/25", "valor": 296692.63}, {"p": "2025-06", "label": "Jun/25", "valor": 356814.23}, {"p": "2025-07", "label": "Jul/25", "valor": 339671.6}, {"p": "2025-08", "label": "Ago/25", "valor": 273584.3}, {"p": "2025-09", "label": "Set/25", "valor": 282048.0}, {"p": "2025-10", "label": "Out/25", "valor": 343935.39}, {"p": "2025-11", "label": "Nov/25", "valor": 242955.94}, {"p": "2025-12", "label": "Dez/25", "valor": 292887.99}, {"p": "2026-01", "label": "Jan/26", "valor": 424613.12}, {"p": "2026-02", "label": "Fev/26", "valor": 430027.65}, {"p": "2026-03", "label": "Mar/26", "valor": 375929.22}, {"p": "2026-04", "label": "Abr/26", "valor": 369460.76}], "ranking": [{"Fiscal": "JOSÉ MESQUITA", "Tipo de Fiscal": "CAMPO", "valor": 2163373.99, "itens": 34204.0, "meses": 26, "media_mensal": 83206.69, "pct_valor": 15.68, "pct_itens": 4.54}, {"Fiscal": "JEAN LOREDO", "Tipo de Fiscal": "CAMPO", "valor": 2132198.48, "itens": 36628.0, "meses": 28, "media_mensal": 76149.95, "pct_valor": 15.45, "pct_itens": 4.87}, {"Fiscal": "EDSON SILVA", "Tipo de Fiscal": "CAMPO", "valor": 1588539.32, "itens": 81552.77, "meses": 28, "media_mensal": 56733.55, "pct_valor": 11.51, "pct_itens": 10.83}, {"Fiscal": "MESSIAS FILHO", "Tipo de Fiscal": "CAMPO", "valor": 1468310.08, "itens": 27365.99, "meses": 28, "media_mensal": 52439.65, "pct_valor": 10.64, "pct_itens": 3.64}, {"Fiscal": "BRUNO MESQUITA", "Tipo de Fiscal": "CAMPO", "valor": 1273942.8, "itens": 45870.19, "meses": 27, "media_mensal": 47183.07, "pct_valor": 9.23, "pct_itens": 6.09}, {"Fiscal": "AGEU CORDEIRO", "Tipo de Fiscal": "CAMPO", "valor": 965610.5, "itens": 47650.0, "meses": 19, "media_mensal": 50821.61, "pct_valor": 7.0, "pct_itens": 6.33}, {"Fiscal": "GILCIMAR PAULA", "Tipo de Fiscal": "CAMPO", "valor": 940271.44, "itens": 17201.0, "meses": 16, "media_mensal": 58766.96, "pct_valor": 6.81, "pct_itens": 2.29}, {"Fiscal": "MARCOS EBERTH", "Tipo de Fiscal": "ADM", "valor": 597106.27, "itens": 77515.0, "meses": 26, "media_mensal": 22965.63, "pct_valor": 4.33, "pct_itens": 10.3}, {"Fiscal": "FRAN CARNEIRO", "Tipo de Fiscal": "ADM", "valor": 319669.61, "itens": 42239.49, "meses": 19, "media_mensal": 16824.72, "pct_valor": 2.32, "pct_itens": 5.61}, {"Fiscal": "CHRISTIANO LOBÃO", "Tipo de Fiscal": "ADM", "valor": 301133.07, "itens": 45861.32, "meses": 18, "media_mensal": 16729.62, "pct_valor": 2.18, "pct_itens": 6.09}, {"Fiscal": "TEILOR CAMPOS", "Tipo de Fiscal": "ADM", "valor": 286943.29, "itens": 30497.77, "meses": 27, "media_mensal": 10627.53, "pct_valor": 2.08, "pct_itens": 4.05}, {"Fiscal": "FABRICIA SILVA", "Tipo de Fiscal": "ADM", "valor": 262021.95, "itens": 54836.0, "meses": 27, "media_mensal": 9704.52, "pct_valor": 1.9, "pct_itens": 7.29}, {"Fiscal": "ANA VILMA", "Tipo de Fiscal": "ADM", "valor": 260035.32, "itens": 53779.4, "meses": 14, "media_mensal": 18573.95, "pct_valor": 1.88, "pct_itens": 7.14}, {"Fiscal": "SARAH CARDOSO", "Tipo de Fiscal": "ADM", "valor": 216197.78, "itens": 38803.81, "meses": 21, "media_mensal": 10295.13, "pct_valor": 1.57, "pct_itens": 5.16}, {"Fiscal": "RAFAEL PEREIRA", "Tipo de Fiscal": "ADM", "valor": 202001.32, "itens": 23051.0, "meses": 17, "media_mensal": 11882.43, "pct_valor": 1.46, "pct_itens": 3.06}, {"Fiscal": "MIKAELLY OLIVEIRA", "Tipo de Fiscal": "ADM", "valor": 162431.32, "itens": 22318.0, "meses": 12, "media_mensal": 13535.94, "pct_valor": 1.18, "pct_itens": 2.97}, {"Fiscal": "BENEDITO EVANDRO", "Tipo de Fiscal": "CAMPO", "valor": 126353.44, "itens": 2784.0, "meses": 4, "media_mensal": 31588.36, "pct_valor": 0.92, "pct_itens": 0.37}, {"Fiscal": "ALINE ARAÚJO", "Tipo de Fiscal": "ADM", "valor": 121954.23, "itens": 6497.0, "meses": 6, "media_mensal": 20325.7, "pct_valor": 0.88, "pct_itens": 0.86}, {"Fiscal": "JOÃO MARCOS", "Tipo de Fiscal": "ADM", "valor": 78299.4, "itens": 21303.0, "meses": 6, "media_mensal": 13049.9, "pct_valor": 0.57, "pct_itens": 2.83}, {"Fiscal": "BRUNA CAMPOS", "Tipo de Fiscal": "ADM", "valor": 68673.2, "itens": 3776.0, "meses": 4, "media_mensal": 17168.3, "pct_valor": 0.5, "pct_itens": 0.5}, {"Fiscal": "EDNARA NOGUEIRA", "Tipo de Fiscal": "ADM", "valor": 67887.97, "itens": 3676.0, "meses": 3, "media_mensal": 22629.32, "pct_valor": 0.49, "pct_itens": 0.49}, {"Fiscal": "GEOVANE FREITAS", "Tipo de Fiscal": "ADM", "valor": 56157.37, "itens": 8743.0, "meses": 8, "media_mensal": 7019.67, "pct_valor": 0.41, "pct_itens": 1.16}, {"Fiscal": "CAYRON ALEX", "Tipo de Fiscal": "ADM", "valor": 47669.86, "itens": 6777.0, "meses": 4, "media_mensal": 11917.47, "pct_valor": 0.35, "pct_itens": 0.9}, {"Fiscal": "JULIO CESAR", "Tipo de Fiscal": "ADM", "valor": 30194.97, "itens": 8426.0, "meses": 2, "media_mensal": 15097.49, "pct_valor": 0.22, "pct_itens": 1.12}, {"Fiscal": "NATHALIA MARÇAL", "Tipo de Fiscal": "ADM", "valor": 27312.44, "itens": 5670.0, "meses": 2, "media_mensal": 13656.22, "pct_valor": 0.2, "pct_itens": 0.75}, {"Fiscal": "MATHEUS RICARDO", "Tipo de Fiscal": "ADM", "valor": 13292.65, "itens": 1467.0, "meses": 1, "media_mensal": 13292.65, "pct_valor": 0.1, "pct_itens": 0.19}, {"Fiscal": "ADRIA LORENA", "Tipo de Fiscal": "ADM", "valor": 12087.58, "itens": 2536.0, "meses": 6, "media_mensal": 2014.6, "pct_valor": 0.09, "pct_itens": 0.34}, {"Fiscal": "RICARDO SILVA", "Tipo de Fiscal": "ADM", "valor": 8094.38, "itens": 1681.0, "meses": 2, "media_mensal": 4047.19, "pct_valor": 0.06, "pct_itens": 0.22}], "obra_resumo": [{"Area": "CONSTRUÇÃO", "valor": 4461903.6777552, "itens": 178490.1814, "obras": 17982}, {"Area": "LPT", "valor": 4200312.700165, "itens": 165709.8, "obras": 12679}, {"Area": "INSPEÇÃO", "valor": 2957964.9838179997, "itens": 156318.7553, "obras": 1393}, {"Area": "MANUTENÇÃO", "valor": 1732918.1646450001, "itens": 204196.0, "obras": 19686}, {"Area": "MLPA", "valor": 444664.49345999997, "itens": 47995.0, "obras": 5706}], "adm_campo": [{"Tipo de Fiscal": "ADM", "valor": 3139163.98, "itens": 459453.79203, "fiscais": 20, "obras": 47929}, {"Tipo de Fiscal": "CAMPO", "valor": 10658600.04, "itens": 293255.94467, "fiscais": 8, "obras": 9517}], "itens_total": [["Ponto", 293200.59], ["As Built", 267128.59], ["Insp. Man. Visual", 115215.0], ["Insp.Bt", 31046.76], ["Ins. Man. Termográfica", 20495.0], ["UC Ligada (Medidor)", 11068.0], ["Visita", 6864.0], ["Analise Projetos", 4538.79], ["Cerca", 3153.0], ["Map. Mlpa", 0.0]], "fiscal_por_periodo": {"2024-01": {"TEILOR CAMPOS": {"valor": 6447.96, "itens": 359.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 38778.76, "itens": 1328.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 14056.39, "itens": 636.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 49996.99, "itens": 2447.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 439.28, "itens": 14.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 1463.15, "itens": 45.0, "tipo": "CAMPO"}, "EDNARA NOGUEIRA": {"valor": 9734.29, "itens": 296.0, "tipo": "ADM"}, "BENEDITO EVANDRO": {"valor": 29681.09, "itens": 962.0, "tipo": "CAMPO"}, "ALINE ARAÚJO": {"valor": 51313.59, "itens": 2019.0, "tipo": "ADM"}}, "2024-02": {"TEILOR CAMPOS": {"valor": 61920.2, "itens": 4035.0, "tipo": "ADM"}, "EDNARA NOGUEIRA": {"valor": 28233.18, "itens": 1580.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 32454.71, "itens": 1369.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 17883.27, "itens": 853.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 7965.96, "itens": 382.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 70661.92, "itens": 4531.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 13087.45, "itens": 1112.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 25093.64, "itens": 1484.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 49081.19, "itens": 509.0, "tipo": "CAMPO"}, "BRUNA CAMPOS": {"valor": 22339.62, "itens": 1306.0, "tipo": "ADM"}, "ALINE ARAÚJO": {"valor": 59888.66, "itens": 3034.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 39878.6, "itens": 752.0, "tipo": "CAMPO"}, "BENEDITO EVANDRO": {"valor": 28203.41, "itens": 612.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 10385.41, "itens": 219.0, "tipo": "CAMPO"}}, "2024-03": {"BENEDITO EVANDRO": {"valor": 68051.39, "itens": 1209.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 69153.95, "itens": 10740.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 6188.47, "itens": 1368.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 44538.15, "itens": 709.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 3411.19, "itens": 430.0, "tipo": "ADM"}, "BRUNA CAMPOS": {"valor": 10811.6, "itens": 1728.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 62486.73, "itens": 3422.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 65979.0, "itens": 974.0, "tipo": "CAMPO"}, "RAFAEL PEREIRA": {"valor": 9359.0, "itens": 1070.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 3933.07, "itens": 719.0, "tipo": "ADM"}, "ALINE ARAÚJO": {"valor": 235.23, "itens": 52.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 54878.19, "itens": 901.0, "tipo": "CAMPO"}, "MIKAELLY OLIVEIRA": {"valor": 7611.43, "itens": 852.0, "tipo": "ADM"}, "AGEU CORDEIRO": {"valor": 65766.86, "itens": 3419.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 40002.14, "itens": 2221.0, "tipo": "CAMPO"}}, "2024-04": {"FABRICIA SILVA": {"valor": 22401.61, "itens": 4952.0, "tipo": "ADM"}, "BRUNO MESQUITA": {"valor": 65253.14, "itens": 3803.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 109382.82, "itens": 6245.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 72943.64, "itens": 4129.0, "tipo": "CAMPO"}, "EDNARA NOGUEIRA": {"valor": 29920.5, "itens": 1800.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 3017.03, "itens": 244.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 52275.19, "itens": 7524.0, "tipo": "ADM"}, "BRUNA CAMPOS": {"valor": 35449.61, "itens": 726.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 16500.67, "itens": 425.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 13338.36, "itens": 2109.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 25823.92, "itens": 385.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 39348.96, "itens": 411.0, "tipo": "CAMPO"}}, "2024-05": {"JOSÉ MESQUITA": {"valor": 96272.59, "itens": 1535.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 77181.48, "itens": 1323.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 4016.91, "itens": 534.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 38151.63, "itens": 5864.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 3475.74, "itens": 660.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 10310.84, "itens": 1214.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 2391.04, "itens": 348.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 18058.76, "itens": 3992.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 21503.83, "itens": 4248.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 205699.93, "itens": 3661.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 30854.14, "itens": 1728.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 86210.73, "itens": 4772.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 31944.67, "itens": 1784.0, "tipo": "CAMPO"}, "BENEDITO EVANDRO": {"valor": 417.55, "itens": 1.0, "tipo": "CAMPO"}}, "2024-06": {"JOSÉ MESQUITA": {"valor": 132705.43, "itens": 2054.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 113488.19, "itens": 2005.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 66561.5, "itens": 3726.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 44306.64, "itens": 2487.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 40853.5, "itens": 2338.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 87306.1, "itens": 1781.0, "tipo": "CAMPO"}, "FABRICIA SILVA": {"valor": 13526.21, "itens": 2873.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 41380.38, "itens": 5882.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 2689.05, "itens": 435.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 4335.81, "itens": 468.0, "tipo": "ADM"}, "BRUNA CAMPOS": {"valor": 72.37, "itens": 16.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 5118.77, "itens": 417.0, "tipo": "ADM"}, "GILCIMAR PAULA": {"valor": 57577.56, "itens": 1281.0, "tipo": "CAMPO"}, "MIKAELLY OLIVEIRA": {"valor": 27952.95, "itens": 3101.0, "tipo": "ADM"}}, "2024-07": {"GILCIMAR PAULA": {"valor": 113088.51, "itens": 1754.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 81512.49, "itens": 1494.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 69229.1, "itens": 3823.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 54298.02, "itens": 2872.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 93295.99, "itens": 5251.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 109620.69, "itens": 1912.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 57934.83, "itens": 5616.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 17226.39, "itens": 3808.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 25142.46, "itens": 1500.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 3935.65, "itens": 870.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 5870.8, "itens": 720.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 10453.05, "itens": 1047.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 84285.37, "itens": 1447.0, "tipo": "CAMPO"}}, "2024-08": {"AGEU CORDEIRO": {"valor": 54050.33, "itens": 2923.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 76331.54, "itens": 4349.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 43012.65, "itens": 2227.0, "tipo": "CAMPO"}, "FABRICIA SILVA": {"valor": 5935.16, "itens": 1312.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 80917.7, "itens": 8322.0, "tipo": "ADM"}, "GILCIMAR PAULA": {"valor": 67657.07, "itens": 1384.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 131512.29, "itens": 3061.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 103814.99, "itens": 2346.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 15906.55, "itens": 1079.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 23160.2, "itens": 2556.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 4813.26, "itens": 1064.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 21706.29, "itens": 2686.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 69840.58, "itens": 1433.0, "tipo": "CAMPO"}}, "2024-09": {"EDSON SILVA": {"valor": 58871.77, "itens": 3247.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 37821.96, "itens": 2060.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 45276.02, "itens": 2200.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 41531.71, "itens": 6569.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 11255.09, "itens": 2488.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 19578.79, "itens": 4328.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 10146.47, "itens": 918.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 46645.13, "itens": 5256.0, "tipo": "ADM"}, "MATHEUS RICARDO": {"valor": 13292.65, "itens": 1467.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 12946.96, "itens": 2862.0, "tipo": "ADM"}, "JOSÉ MESQUITA": {"valor": 77077.66, "itens": 1431.0, "tipo": "CAMPO"}, "RAFAEL PEREIRA": {"valor": 15021.71, "itens": 2451.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 68665.19, "itens": 1215.0, "tipo": "CAMPO"}, "ALINE ARAÚJO": {"valor": 6524.0, "itens": 720.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 119193.55, "itens": 2916.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 63424.3, "itens": 1041.0, "tipo": "CAMPO"}}, "2024-10": {"AGEU CORDEIRO": {"valor": 47050.32, "itens": 1938.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 67561.23, "itens": 1107.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 70274.53, "itens": 1275.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 80255.64, "itens": 1624.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 89117.65, "itens": 1740.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 58566.48, "itens": 3190.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 31519.15, "itens": 1812.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 18400.48, "itens": 947.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 9192.23, "itens": 2032.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 9916.03, "itens": 2192.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 17882.7, "itens": 2951.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 8450.09, "itens": 866.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 14077.87, "itens": 3112.0, "tipo": "ADM"}}, "2024-11": {"EDSON SILVA": {"valor": 67086.6, "itens": 3622.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 39310.78, "itens": 1911.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 35729.82, "itens": 1782.0, "tipo": "CAMPO"}, "FABRICIA SILVA": {"valor": 5319.93, "itens": 1176.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 5365.16, "itens": 1186.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 7192.75, "itens": 1590.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 72.38, "itens": 16.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 3963.09, "itens": 644.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 14805.57, "itens": 1961.0, "tipo": "ADM"}, "RICARDO SILVA": {"valor": 3682.32, "itens": 814.0, "tipo": "ADM"}, "ALINE ARAÚJO": {"valor": 1434.91, "itens": 251.0, "tipo": "ADM"}, "GILCIMAR PAULA": {"valor": 59497.7, "itens": 1137.0, "tipo": "CAMPO"}, "FRAN CARNEIRO": {"valor": 26272.82, "itens": 2841.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 52440.06, "itens": 1149.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 398.09, "itens": 88.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 45070.65, "itens": 816.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 59832.77, "itens": 1157.0, "tipo": "CAMPO"}}, "2024-12": {"MARCOS EBERTH": {"valor": 7646.0, "itens": 1627.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 14367.39, "itens": 3176.0, "tipo": "ADM"}, "JOSÉ MESQUITA": {"valor": 87802.3, "itens": 1613.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 4388.03, "itens": 970.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 64212.54, "itens": 1099.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 68174.49, "itens": 1332.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 2913.41, "itens": 635.0, "tipo": "ADM"}, "AGEU CORDEIRO": {"valor": 55342.77, "itens": 1982.0, "tipo": "CAMPO"}, "RAFAEL PEREIRA": {"valor": 8703.5, "itens": 1596.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 4198.15, "itens": 919.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 32387.47, "itens": 3275.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 41343.35, "itens": 869.0, "tipo": "CAMPO"}, "ALINE ARAÚJO": {"valor": 2557.83, "itens": 421.0, "tipo": "ADM"}, "RICARDO SILVA": {"valor": 4412.06, "itens": 867.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 8705.3, "itens": 1807.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 98387.74, "itens": 5615.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 39702.82, "itens": 1884.0, "tipo": "CAMPO"}}, "2025-01": {"SARAH CARDOSO": {"valor": 5826.82, "itens": 1270.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 13598.35, "itens": 3006.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 26191.76, "itens": 4848.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 23799.03, "itens": 3958.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 11644.49, "itens": 1891.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 3954.75, "itens": 802.0, "tipo": "ADM"}, "GEOVANE FREITAS": {"valor": 1483.79, "itens": 328.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 4209.99, "itens": 717.0, "tipo": "ADM"}, "BRUNO MESQUITA": {"valor": 39063.56, "itens": 1690.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 88016.87, "itens": 4850.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 52006.55, "itens": 2408.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 82542.77, "itens": 1487.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 76505.05, "itens": 1405.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 73855.71, "itens": 1315.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 58303.73, "itens": 1061.0, "tipo": "CAMPO"}}, "2025-02": {"MESSIAS FILHO": {"valor": 75003.82, "itens": 1492.0, "tipo": "CAMPO"}, "SARAH CARDOSO": {"valor": 13101.12, "itens": 2607.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 10223.65, "itens": 2260.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 22997.28, "itens": 3862.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 19711.87, "itens": 3229.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 11727.38, "itens": 1792.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 615.73, "itens": 100.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 14860.35, "itens": 2969.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 2759.48, "itens": 610.0, "tipo": "ADM"}, "AGEU CORDEIRO": {"valor": 62534.82, "itens": 3156.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 63917.06, "itens": 1365.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 12396.05, "itens": 220.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 63827.43, "itens": 1283.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 39136.94, "itens": 1960.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 72209.31, "itens": 4031.0, "tipo": "CAMPO"}, "GEOVANE FREITAS": {"valor": 3492.33, "itens": 772.0, "tipo": "ADM"}}, "2025-03": {"AGEU CORDEIRO": {"valor": 69515.63, "itens": 3665.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 43969.78, "itens": 1978.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 25168.86, "itens": 4017.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 21212.08, "itens": 3315.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 74618.6, "itens": 3904.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 12537.25, "itens": 1979.0, "tipo": "ADM"}, "JOSÉ MESQUITA": {"valor": 63730.13, "itens": 1125.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 71295.76, "itens": 1500.0, "tipo": "CAMPO"}, "SARAH CARDOSO": {"valor": 21309.29, "itens": 4121.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 37277.57, "itens": 715.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 49166.14, "itens": 940.0, "tipo": "CAMPO"}, "MIKAELLY OLIVEIRA": {"valor": 11559.78, "itens": 2438.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 3565.61, "itens": 752.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 12640.84, "itens": 2666.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 7020.49, "itens": 1282.0, "tipo": "ADM"}, "ADRIA LORENA": {"valor": 3527.68, "itens": 744.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 8487.29, "itens": 1790.0, "tipo": "ADM"}}, "2025-04": {"AGEU CORDEIRO": {"valor": 46842.05, "itens": 2467.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 64970.39, "itens": 3380.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 40252.16, "itens": 1869.4, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 76125.95, "itens": 1359.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 58609.43, "itens": 1105.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 139845.9, "itens": 1998.0, "tipo": "CAMPO"}, "ANA VILMA": {"valor": 18510.82, "itens": 3904.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 12102.68, "itens": 2399.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 18985.38, "itens": 3977.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 11143.49, "itens": 1962.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 398.29, "itens": 84.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 20631.81, "itens": 4249.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 796.99, "itens": 141.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 36953.2, "itens": 642.0, "tipo": "CAMPO"}, "MIKAELLY OLIVEIRA": {"valor": 1839.7, "itens": 388.0, "tipo": "ADM"}}, "2025-05": {"AGEU CORDEIRO": {"valor": 42341.21, "itens": 2039.0, "tipo": "CAMPO"}, "FRAN CARNEIRO": {"valor": 12009.86, "itens": 2241.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 15500.29, "itens": 2628.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 10431.36, "itens": 1959.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 22594.16, "itens": 3343.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 8563.15, "itens": 1806.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 25424.48, "itens": 5326.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 41765.51, "itens": 2151.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 13609.26, "itens": 206.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 48955.03, "itens": 781.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 68332.36, "itens": 1108.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 37909.1, "itens": 700.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 43780.16, "itens": 2230.59, "tipo": "CAMPO"}, "RAFAEL PEREIRA": {"valor": 1072.42, "itens": 172.0, "tipo": "ADM"}}, "2025-06": {"GILCIMAR PAULA": {"valor": 38336.4, "itens": 748.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 35987.44, "itens": 1826.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 42314.74, "itens": 2350.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 40175.22, "itens": 2036.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 72913.0, "itens": 998.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 52039.56, "itens": 794.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 75047.87, "itens": 1317.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 23121.93, "itens": 3122.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 12204.62, "itens": 2574.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 8508.48, "itens": 1650.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 11514.24, "itens": 2319.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 12108.82, "itens": 2003.0, "tipo": "ADM"}, "ADRIA LORENA": {"valor": 4134.59, "itens": 872.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 8136.41, "itens": 1716.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 3243.19, "itens": 684.0, "tipo": "ADM"}}, "2025-07": {"JEAN LOREDO": {"valor": 51911.91, "itens": 1353.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 48455.86, "itens": 1004.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 46129.61, "itens": 2313.0, "tipo": "CAMPO"}, "ANA VILMA": {"valor": 10260.08, "itens": 2099.74, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 7717.42, "itens": 1328.74, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 14816.52, "itens": 2106.74, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 4561.32, "itens": 962.0, "tipo": "ADM"}, "NATHALIA MARÇAL": {"valor": 19971.62, "itens": 4185.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 17494.02, "itens": 3101.74, "tipo": "ADM"}, "JOSÉ MESQUITA": {"valor": 38294.52, "itens": 688.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 83350.4, "itens": 1268.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 29556.98, "itens": 1454.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 41972.32, "itens": 1960.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 4049.24, "itens": 854.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 10702.11, "itens": 1481.45, "tipo": "ADM"}}, "2025-08": {"ANA VILMA": {"valor": 14996.87, "itens": 3030.68, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 12125.46, "itens": 1910.73, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 15613.7, "itens": 2395.89, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 9723.75, "itens": 1030.64, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 12186.81, "itens": 1600.89, "tipo": "ADM"}, "NATHALIA MARÇAL": {"valor": 7340.82, "itens": 1485.0, "tipo": "ADM"}, "BRUNO MESQUITA": {"valor": 44371.79, "itens": 757.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 38594.23, "itens": 1683.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 7396.74, "itens": 1560.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 48235.59, "itens": 887.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 38337.61, "itens": 715.0, "tipo": "CAMPO"}, "GILCIMAR PAULA": {"valor": 7513.24, "itens": 66.0, "tipo": "CAMPO"}, "AGEU CORDEIRO": {"valor": 41717.44, "itens": 738.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 54814.4, "itens": 874.0, "tipo": "CAMPO"}, "FABRICIA SILVA": {"valor": 3262.15, "itens": 688.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 75.86, "itens": 16.0, "tipo": "ADM"}}, "2025-09": {"JOSÉ MESQUITA": {"valor": 77265.8, "itens": 1422.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 52805.92, "itens": 982.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 70747.66, "itens": 1140.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 39509.83, "itens": 1834.5, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 35775.01, "itens": 799.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 29250.25, "itens": 3517.6, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 27351.94, "itens": 3244.88, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 14691.26, "itens": 1915.17, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 11435.69, "itens": 1896.33, "tipo": "ADM"}, "ANA VILMA": {"valor": 40008.67, "itens": 8384.47, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 5301.0, "itens": 1118.0, "tipo": "ADM"}, "MIKAELLY OLIVEIRA": {"valor": 113.8, "itens": 24.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 6334.64, "itens": 1336.0, "tipo": "ADM"}, "GILCIMAR PAULA": {"valor": 5943.78, "itens": 90.0, "tipo": "CAMPO"}}, "2025-10": {"JOSÉ MESQUITA": {"valor": 99883.99, "itens": 1457.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 62340.26, "itens": 1435.59, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 70828.18, "itens": 944.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 71708.6, "itens": 1058.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 39174.36, "itens": 1639.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 18202.96, "itens": 2515.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 29153.0, "itens": 2712.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 7656.05, "itens": 1064.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 25585.13, "itens": 5396.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 10681.32, "itens": 1681.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 10801.14, "itens": 2278.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 1365.55, "itens": 288.0, "tipo": "ADM"}}, "2025-11": {"ANA VILMA": {"valor": 11882.2, "itens": 2506.0, "tipo": "ADM"}, "BRUNO MESQUITA": {"valor": 47723.87, "itens": 645.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 16398.21, "itens": 2005.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 5680.32, "itens": 1198.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 20096.9, "itens": 1795.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 14114.51, "itens": 1409.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 10155.06, "itens": 926.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 54563.49, "itens": 2251.13, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 46261.74, "itens": 732.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 60317.83, "itens": 1103.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 2351.78, "itens": 496.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 34089.01, "itens": 593.0, "tipo": "CAMPO"}, "ADRIA LORENA": {"valor": 3034.56, "itens": 640.0, "tipo": "ADM"}, "JOÃO MARCOS": {"valor": 6900.48, "itens": 2231.0, "tipo": "ADM"}}, "2025-12": {"BRUNO MESQUITA": {"valor": 54387.53, "itens": 1165.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 10142.87, "itens": 910.85, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 11021.31, "itens": 1337.98, "tipo": "ADM"}, "JOSÉ MESQUITA": {"valor": 89018.99, "itens": 1615.0, "tipo": "CAMPO"}, "CHRISTIANO LOBÃO": {"valor": 13104.51, "itens": 1853.09, "tipo": "ADM"}, "ANA VILMA": {"valor": 13859.94, "itens": 2813.71, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 7415.5, "itens": 1564.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 42265.44, "itens": 1960.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 46553.76, "itens": 790.0, "tipo": "CAMPO"}, "SARAH CARDOSO": {"valor": 9406.58, "itens": 1501.85, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 60662.27, "itens": 1201.0, "tipo": "CAMPO"}, "MARCOS EBERTH": {"valor": 1024.11, "itens": 216.0, "tipo": "ADM"}, "JOÃO MARCOS": {"valor": 11969.03, "itens": 3761.0, "tipo": "ADM"}, "ADRIA LORENA": {"valor": 227.58, "itens": 48.0, "tipo": "ADM"}}, "2026-01": {"EDSON SILVA": {"valor": 41693.04, "itens": 1834.23, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 172344.82, "itens": 1418.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 85191.34, "itens": 1614.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 75760.74, "itens": 1201.0, "tipo": "CAMPO"}, "ANA VILMA": {"valor": 16088.59, "itens": 3315.8, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 10839.82, "itens": 1271.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 14694.9, "itens": 2075.0, "tipo": "ADM"}, "SARAH CARDOSO": {"valor": 7425.35, "itens": 1118.6, "tipo": "ADM"}, "CAYRON ALEX": {"valor": 7969.19, "itens": 1109.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 6495.86, "itens": 1370.0, "tipo": "ADM"}, "JOÃO MARCOS": {"valor": 14412.63, "itens": 4195.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 3189.23, "itens": 549.2, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 4362.18, "itens": 920.0, "tipo": "ADM"}, "BRUNO MESQUITA": {"valor": 49623.18, "itens": 758.0, "tipo": "CAMPO"}}, "2026-02": {"BRUNO MESQUITA": {"valor": 96854.51, "itens": 784.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 36681.85, "itens": 592.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 158828.91, "itens": 1027.0, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 52527.14, "itens": 2027.91, "tipo": "CAMPO"}, "JOÃO MARCOS": {"valor": 17845.1, "itens": 4840.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 11105.47, "itens": 1951.0, "tipo": "ADM"}, "CAYRON ALEX": {"valor": 8408.86, "itens": 961.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 18681.51, "itens": 3940.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 11717.55, "itens": 2050.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 2759.55, "itens": 590.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 1137.96, "itens": 240.0, "tipo": "ADM"}, "JEAN LOREDO": {"valor": 85135.23, "itens": 519.0, "tipo": "CAMPO"}}, "2026-03": {"BRUNO MESQUITA": {"valor": 47354.18, "itens": 940.2, "tipo": "CAMPO"}, "EDSON SILVA": {"valor": 54074.21, "itens": 2104.0, "tipo": "CAMPO"}, "JOSÉ MESQUITA": {"valor": 27497.61, "itens": 519.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 199406.5, "itens": 2297.0, "tipo": "CAMPO"}, "FRAN CARNEIRO": {"valor": 7918.69, "itens": 1369.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 3669.52, "itens": 732.0, "tipo": "ADM"}, "TEILOR CAMPOS": {"valor": 7078.31, "itens": 1081.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 17584.66, "itens": 2235.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 19766.71, "itens": 3913.0, "tipo": "ADM"}, "CAYRON ALEX": {"valor": 9704.17, "itens": 1334.0, "tipo": "ADM"}, "JOÃO MARCOS": {"valor": 15409.82, "itens": 3930.0, "tipo": "ADM"}, "MESSIAS FILHO": {"valor": 47596.72, "itens": 740.4, "tipo": "CAMPO"}, "FABRICIA SILVA": {"valor": 5985.52, "itens": 1194.0, "tipo": "ADM"}, "JULIO CESAR": {"valor": 11107.02, "itens": 3354.0, "tipo": "ADM"}, "ADRIA LORENA": {"valor": 80.21, "itens": 16.0, "tipo": "ADM"}}, "2026-04": {"JOSÉ MESQUITA": {"valor": 113805.63, "itens": 1602.0, "tipo": "CAMPO"}, "BRUNO MESQUITA": {"valor": 63541.11, "itens": 1063.0, "tipo": "CAMPO"}, "MESSIAS FILHO": {"valor": 26426.05, "itens": 448.0, "tipo": "CAMPO"}, "JEAN LOREDO": {"valor": 125523.86, "itens": 2123.0, "tipo": "CAMPO"}, "TEILOR CAMPOS": {"valor": 2319.81, "itens": 222.0, "tipo": "ADM"}, "CHRISTIANO LOBÃO": {"valor": 11584.12, "itens": 1799.0, "tipo": "ADM"}, "CAYRON ALEX": {"valor": 21587.64, "itens": 3373.0, "tipo": "ADM"}, "ANA VILMA": {"valor": 29200.09, "itens": 5824.0, "tipo": "ADM"}, "JOÃO MARCOS": {"valor": 11762.33, "itens": 2346.0, "tipo": "ADM"}, "FABRICIA SILVA": {"valor": 5946.33, "itens": 1186.0, "tipo": "ADM"}, "RAFAEL PEREIRA": {"valor": 12233.55, "itens": 2440.0, "tipo": "ADM"}, "MARCOS EBERTH": {"valor": 882.42, "itens": 176.0, "tipo": "ADM"}, "FRAN CARNEIRO": {"valor": 8083.65, "itens": 1161.0, "tipo": "ADM"}, "EDSON SILVA": {"valor": 40164.11, "itens": 1676.0, "tipo": "CAMPO"}, "ADRIA LORENA": {"valor": 1082.97, "itens": 216.0, "tipo": "ADM"}, "JULIO CESAR": {"valor": 19087.95, "itens": 5072.0, "tipo": "ADM"}}}, "all_months": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"]};
+
+// =========================================================
+// STATE & CHARTS
+// =========================================================
+let activeFilters = { ano:'', mes:'', tipo:'', fiscal:'', obra:'' };
+let charts = {};
+let modalChartLine, modalChartBar;
+
+const MONTHS_PT = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+const MONTH_ORDER = Object.fromEntries(MONTHS_PT.map((m,i) => [m, i+1]));
+
+function sortKey(mes) {
+  const p = mes.split(' ');
+  return `${p[1]}-${String(MONTH_ORDER[p[0]]||0).padStart(2,'0')}`;
+}
+
+// ---- POPULATE FILTERS ----
+const MESES_PT = {1:'Janeiro',2:'Fevereiro',3:'Março',4:'Abril',5:'Maio',6:'Junho',
+                  7:'Julho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro',12:'Dezembro'};
+
+function populateFilters() {
+  // Fiscal list
+  const fiscalSelect = document.getElementById('fFiscal');
+  RAW.fiscais_list.forEach(f => {
+    const o = document.createElement('option'); o.value = f; o.textContent = f; fiscalSelect.appendChild(o);
+  });
+  // Obra list
+  const obraSelect = document.getElementById('fObra');
+  RAW.tipos_obra.forEach(a => {
+    const o = document.createElement('option'); o.value = a; o.textContent = a; obraSelect.appendChild(o);
+  });
+  // Month: starts empty, populated by onAnoChange
+  updateMesOptions('');
+}
+
+function updateMesOptions(ano) {
+  const mesSelect = document.getElementById('fMes');
+  const prev = mesSelect.value;
+  mesSelect.innerHTML = '<option value="">Todos</option>';
+  let meses;
+  if (ano && RAW.meses_por_ano[ano]) {
+    meses = RAW.meses_por_ano[ano];
+  } else {
+    // All months across all years
+    const all = [];
+    RAW.anos.forEach(a => (RAW.meses_por_ano[a]||[]).forEach(m => {
+      if (!all.find(x => x.num === m.num)) all.push(m);
+    }));
+    meses = all.sort((a,b) => a.num - b.num);
+  }
+  meses.forEach(m => {
+    const o = document.createElement('option');
+    o.value = String(m.num);
+    o.textContent = m.nome;
+    mesSelect.appendChild(o);
+  });
+  // Restore prev if still valid
+  if (prev && [...mesSelect.options].some(o => o.value === prev)) mesSelect.value = prev;
+  else mesSelect.value = '';
+}
+
+function onAnoChange() {
+  const ano = document.getElementById('fAno').value;
+  updateMesOptions(ano);
+  applyFilters();
+}
+
+function applyFilters() {
+  activeFilters.ano  = document.getElementById('fAno').value;
+  activeFilters.mes  = document.getElementById('fMes').value;  // now '1'..'12' or ''
+  activeFilters.tipo = document.getElementById('fTipo').value;
+  activeFilters.fiscal = document.getElementById('fFiscal').value;
+  activeFilters.obra = document.getElementById('fObra').value;
+  renderAll();
+}
+
+function resetFilters() {
+  ['fAno','fTipo','fFiscal','fObra'].forEach(id => document.getElementById(id).value = '');
+  updateMesOptions('');
+  activeFilters = { ano:'', mes:'', tipo:'', fiscal:'', obra:'' };
+  renderAll();
+}
+
+// ---- FILTER HELPER ----
+function filterMonthly(data) {
+  return data.filter(d => {
+    const [y, m] = d.p.split('-');
+    if (activeFilters.ano && y !== activeFilters.ano) return false;
+    if (activeFilters.mes && String(parseInt(m)) !== String(activeFilters.mes)) return false;
+    return true;
+  });
+}
+function isFiltered() {
+  return !!(activeFilters.ano || activeFilters.mes || activeFilters.tipo || activeFilters.fiscal || activeFilters.obra);
+}
+function getActivePeriod() {
+  if (activeFilters.ano && activeFilters.mes)
+    return `${activeFilters.ano}-${String(activeFilters.mes).padStart(2,'0')}`;
+  return null;
+}
+
+function getFilteredRanking() {
+  const ano     = activeFilters.ano;
+  const mes     = activeFilters.mes;
+  const periodo = getActivePeriod();
+  const tipo    = activeFilters.tipo;
+  const fiscal  = activeFilters.fiscal;
+
+  let rows = [];
+
+  if (periodo) {
+    // ── Drill-down: use per-period data ─────────────────────────────
+    const fp = RAW.fiscal_por_periodo?.[periodo] || {};
+    const allVals = Object.entries(fp);
+    const totalV = allVals.reduce((s,[,v])=>s+v.valor,0);
+    const totalI = allVals.reduce((s,[,v])=>s+v.itens,0);
+    rows = allVals.map(([f, v]) => ({
+      Fiscal: f, 'Tipo de Fiscal': v.tipo,
+      valor: v.valor, itens: v.itens, meses: 1,
+      media_mensal: v.valor,
+      pct_valor: totalV ? v.valor/totalV*100 : 0,
+      pct_itens: totalI ? v.itens/totalI*100 : 0,
+    })).sort((a,b) => b.valor - a.valor);
+
+  } else {
+    // ── General: rebuild from PROD_ANOS by year filter ──────────────
+    const anosUsar = ano ? [ano] : ['2024','2025','2026'];
+    ['CAMPO','ADM'].forEach(tp => {
+      PROD_ANOS[tp].forEach(f => {
+        let totalVal = 0, totalMeses = 0;
+        anosUsar.forEach(a => {
+          const d = f.anos[a];
+          if (d?.total > 0) { totalVal += d.total; totalMeses += d.meses; }
+        });
+        if (totalMeses === 0) return;
+        const rawR = RAW.ranking.find(r => r.Fiscal === f.name);
+        rows.push({
+          Fiscal: f.name, 'Tipo de Fiscal': tp,
+          valor: totalVal, itens: rawR?.itens||0, meses: totalMeses,
+          media_mensal: Math.round(totalVal/totalMeses),
+          pct_valor: 0, pct_itens: 0,
+        });
+      });
+    });
+    // deduplicate
+    const seen = {};
+    rows = rows.filter(r => {
+      if (!seen[r.Fiscal]) { seen[r.Fiscal] = r; return true; }
+      if (r.valor > seen[r.Fiscal].valor) { seen[r.Fiscal] = r; return true; }
+      return false;
+    });
+    rows.sort((a,b) => b.valor - a.valor);
+    const tv = rows.reduce((s,r)=>s+r.valor,0);
+    const ti = rows.reduce((s,r)=>s+r.itens,0);
+    rows.forEach(r=>{ r.pct_valor=tv?r.valor/tv*100:0; r.pct_itens=ti?r.itens/ti*100:0; });
+  }
+
+  if (tipo)   rows = rows.filter(x => x['Tipo de Fiscal'] === tipo);
+  if (fiscal) rows = rows.filter(x => x.Fiscal === fiscal);
+  return rows;
+}
+
+function getFilteredTotal() {
+  let t     = filterMonthly(RAW.monthly_total);
+  const adm   = filterMonthly(RAW.monthly_adm);
+  const campo = filterMonthly(RAW.monthly_campo);
+  if (activeFilters.tipo === 'ADM')   return { t: adm,   adm,   campo: [] };
+  if (activeFilters.tipo === 'CAMPO') return { t: campo, adm: [], campo };
+  return { t, adm, campo };
+}
+
+// =========================================================
+// TELA 1
+// =========================================================
+function renderKPIs() {
+  const fiscal  = activeFilters.fiscal;
+  const ano     = activeFilters.ano;
+  const mes     = activeFilters.mes;
+  const periodo = getActivePeriod();
+  const tipo    = activeFilters.tipo;
+  let kpis;
+
+  if (fiscal) {
+    // ── Visão de fiscal específico ──────────────────────────────────
+    const tipoFiscal = ['CAMPO','ADM'].find(tp => PROD_ANOS[tp].some(f => f.name === fiscal)) || '';
+    const fd = tipoFiscal ? PROD_ANOS[tipoFiscal].find(f => f.name === fiscal) : null;
+    const anosUsar = ano ? [ano] : ['2024','2025','2026'];
+    let tvTotal = 0, tvMeses = 0;
+    if (fd) {
+      if (periodo) {
+        tvTotal = fd.serie?.[periodo] || 0;
+        tvMeses = tvTotal > 0 ? 1 : 0;
+      } else {
+        anosUsar.forEach(a => { const d = fd.anos[a]; if (d?.total > 0) { tvTotal += d.total; tvMeses += d.meses; }});
+      }
+    }
+    const mediaFiscal = tvMeses > 0 ? tvTotal / tvMeses : 0;
+    const ranking = getFilteredRanking();
+    const rFiscal = ranking.find(r => r.Fiscal === fiscal);
+    kpis = [
+      { label:'Valor Total Medido', value: fmtR(tvTotal), sub: tvMeses > 0 ? `${tvMeses} meses ativos` : 'Sem produção no período' },
+      { label:'Tipo de Fiscal', value: tipoFiscal || '—', sub: fiscal },
+      { label:'Período', value: periodo ? period_label_from_p(periodo) : (ano || 'Todos os anos'), sub: mes ? MESES_PT_NOME[mes] : '' },
+      { label:'Média Mensal', value: fmtR(mediaFiscal), sub: 'Total ÷ meses ativos' },
+      { label:'2024 — Média/mês', value: fmtR(fd?.anos['2024']?.media||0), sub: `${fd?.anos['2024']?.meses||0} meses` },
+      { label:'2025 — Média/mês', value: fmtR(fd?.anos['2025']?.media||0), sub: `${fd?.anos['2025']?.meses||0} meses` },
+      { label:'2026 — Total', value: fmtR(fd?.anos['2026']?.total||0), sub: `${fd?.anos['2026']?.meses||0} meses (parcial)` },
+      { label:'Total de Itens', value: fmtN(rFiscal?.itens||0), sub: 'Produção registrada' },
+    ];
+
+  } else if (periodo) {
+    // ── Visão de mês específico ─────────────────────────────────────
+    const fp = RAW.fiscal_por_periodo?.[periodo] || {};
+    const vals = Object.values(fp).filter(v => !tipo || v.tipo === tipo);
+    const totalMes = vals.reduce((s,v) => s+v.valor, 0);
+    const totalItensMes = vals.reduce((s,v) => s+v.itens, 0);
+    const nFiscais = vals.length;
+    const nAdm   = vals.filter(v => v.tipo==='ADM').length;
+    const nCampo = vals.filter(v => v.tipo==='CAMPO').length;
+    const totMesAll = filterMonthly(RAW.monthly_total).reduce((s,x)=>s+x.valor,0);
+    const admMes  = Object.values(fp).filter(v=>v.tipo==='ADM').reduce((s,v)=>s+v.valor,0);
+    const campoMes= Object.values(fp).filter(v=>v.tipo==='CAMPO').reduce((s,v)=>s+v.valor,0);
+    kpis = [
+      { label:'Faturamento no Mês', value: fmtR(totalMes), sub: period_label_from_p(periodo) },
+      { label:'Fiscais Ativos', value: nFiscais, sub: `${nAdm} ADM · ${nCampo} Campo` },
+      { label:'Total de Itens', value: fmtN(totalItensMes), sub: 'Executados no mês' },
+      { label:'Ticket Médio', value: fmtR(totalItensMes ? totalMes/totalItensMes : 0), sub: 'R$ por item' },
+      { label:'Produção ADM', value: fmtR(admMes), sub: fmtPct(totalMes?admMes/totalMes*100:0) + ' do mês', badge:'adm' },
+      { label:'Produção Campo', value: fmtR(campoMes), sub: fmtPct(totalMes?campoMes/totalMes*100:0) + ' do mês', badge:'campo' },
+      { label:'Média/Fiscal Campo', value: fmtR(nCampo?campoMes/nCampo:0), sub: 'Por fiscal ativo' },
+      { label:'Média/Fiscal ADM', value: fmtR(nAdm?admMes/nAdm:0), sub: 'Por fiscal ativo' },
+    ];
+
+  } else {
+    // ── Visão geral / por ano ───────────────────────────────────────
+    const { t, adm, campo } = getFilteredTotal();
+    const totalVal   = t.reduce((s,x) => s+x.valor, 0);
+    const totalAdm   = adm.reduce((s,x) => s+x.valor, 0);
+    const totalCampo = campo.reduce((s,x) => s+x.valor, 0);
+    const ranking    = getFilteredRanking();
+    const mediaMensal = t.length ? totalVal / t.length : 0;
+    const fiscaisAtivos = ranking.length;
+    const totalItens    = ranking.reduce((s,r) => s+r.itens, 0);
+    const ticketMedio   = totalItens ? totalVal / totalItens : 0;
+    const nAdm   = ranking.filter(r=>r['Tipo de Fiscal']==='ADM').length;
+    const nCampo = ranking.filter(r=>r['Tipo de Fiscal']==='CAMPO').length;
+    const periodoLabel = ano ? `Ano ${ano}` : 'Jan/2024 – Fev/2026';
+    kpis = [
+      { label:'Valor Total Medido', value: fmtR(totalVal), sub: periodoLabel },
+      { label:'Total de Itens', value: fmtN(totalItens), sub: 'Soma de todos os itens' },
+      { label:'Fiscais no Período', value: fiscaisAtivos, sub: `${nAdm} ADM · ${nCampo} Campo` },
+      { label:'Média Mensal', value: fmtR(mediaMensal), sub: 'Por mês no período' },
+      { label:'Produção ADM', value: fmtR(totalAdm), sub: fmtPct(totalAdm/(totalVal||1)*100) + ' do total', badge:'adm' },
+      { label:'Produção Campo', value: fmtR(totalCampo), sub: fmtPct(totalCampo/(totalVal||1)*100) + ' do total', badge:'campo' },
+      { label:'Ticket Médio', value: fmtR(ticketMedio), sub: 'Valor por item executado' },
+      { label:'Total / Nº Fiscais', value: fmtR(fiscaisAtivos?totalVal/fiscaisAtivos:0), sub: 'Referência histórica' },
+    ];
+  }
+
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-sub">${k.sub}${k.badge ? ` <span class="kpi-badge badge-${k.badge}">${k.badge.toUpperCase()}</span>` : ''}</div>
+    </div>`).join('');
+}
+
+function period_label_from_p(p) {
+  const [y, m] = p.split('-');
+  const n = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return n[+m] + '/' + y.slice(2);
+}
+const MESES_PT_NOME = {1:'Janeiro',2:'Fevereiro',3:'Março',4:'Abril',5:'Maio',6:'Junho',
+  7:'Julho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro',12:'Dezembro'};
+
+
+function renderEvolucaoMensal() {
+  const fiscal = activeFilters.fiscal;
+  destroyChart('chartEvolucao');
+
+  if (fiscal) {
+    // Show individual fiscal monthly series from PROD_ANOS
+    const tipoFiscal = ['CAMPO','ADM'].find(t => PROD_ANOS[t].some(f => f.name === fiscal));
+    const fd = tipoFiscal ? PROD_ANOS[tipoFiscal].find(f => f.name === fiscal) : null;
+    if (!fd) return;
+    const cor = tipoFiscal === 'CAMPO' ? '#2ec4b6' : '#2e85d4';
+    const corBg = tipoFiscal === 'CAMPO' ? 'rgba(46,196,182,0.15)' : 'rgba(46,133,212,0.15)';
+    // filter months by ano if set
+    const ano = activeFilters.ano;
+    const months = ALL_MONTHS.filter(m => !ano || m.startsWith(ano));
+    const vals = months.map(m => fd.serie[m] || 0);
+    // annual average lines
+    const mediaLine = months.map(m => {
+      const a = m.split('-')[0];
+      return fd.anos[a]?.media || null;
+    });
+    const labels = months.map(m => {
+      const [y,mo] = m.split('-');
+      const n = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      return n[+mo]+'/'+y.slice(2);
+    });
+    charts.chartEvolucao = new Chart(document.getElementById('chartEvolucao'), {
+      type:'bar',
+      data:{
+        labels,
+        datasets:[
+          { label: fiscal, data: vals,
+            backgroundColor: vals.map(v => v>0 ? cor.replace(')',',0.7)').replace('rgb','rgba') : 'rgba(255,255,255,0.04)'),
+            borderRadius: 3 },
+          { label:'Média anual', data: mediaLine, type:'line',
+            borderColor: cor, borderDash:[4,3], pointRadius:0, fill:false, borderWidth:1.5, spanGaps:false },
+        ]
+      },
+      options:{ ...defaultOpts(), plugins:{ legend:{...legendOpts()},
+        tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtR(ctx.raw)}` }}}}
+    });
+    return;
+  }
+
+  // Default: ADM × Campo × Total
+  const { t, adm, campo } = getFilteredTotal();
+  const labels = t.map(x => x.label);
+  charts.chartEvolucao = new Chart(document.getElementById('chartEvolucao'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        { label:'ADM', data: adm.map(x=>x.valor), borderColor:'#2e85d4', backgroundColor:'rgba(46,133,212,0.1)', tension:0.4, fill:true, pointRadius:2 },
+        { label:'Campo', data: campo.map(x=>x.valor), borderColor:'#2ec4b6', backgroundColor:'rgba(46,196,182,0.1)', tension:0.4, fill:true, pointRadius:2 },
+        { label:'Total', data: t.map(x=>x.valor), borderColor:'#e8a83e', backgroundColor:'transparent', tension:0.4, borderWidth:2, borderDash:[4,3], pointRadius:0 },
+      ]
+    },
+    options:{ ...defaultOpts(), plugins:{ legend:{...legendOpts()}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtR(ctx.raw)}` }}}}
+  });
+}
+
+function renderAdmCampo() {
+  const ac = RAW.adm_campo;
+  destroyChart('chartAdmCampo');
+  charts.chartAdmCampo = new Chart(document.getElementById('chartAdmCampo'), {
+    type:'doughnut',
+    data:{
+      labels:['ADM','Campo'],
+      datasets:[{ data:[ac[0].valor, ac[1].valor], backgroundColor:['rgba(46,133,212,0.85)','rgba(46,196,182,0.85)'], borderColor:['#2e85d4','#2ec4b6'], borderWidth:2 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{ legend:{...legendOpts()}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${ctx.label}: ${fmtR(ctx.raw)} (${fmtPct(ctx.raw/(ac[0].valor+ac[1].valor)*100)})` }}}}
+  });
+}
+
+function renderObra() {
+  const data = RAW.obra_resumo;
+  destroyChart('chartObra');
+  charts.chartObra = new Chart(document.getElementById('chartObra'), {
+    type:'bar',
+    data:{
+      labels: data.map(x=>x.Area),
+      datasets:[{ label:'Valor (R$)', data:data.map(x=>x.valor), backgroundColor:['rgba(46,133,212,0.8)','rgba(46,196,182,0.8)','rgba(232,168,62,0.8)','rgba(224,95,95,0.8)','rgba(76,175,125,0.8)'], borderRadius:4 }]
+    },
+    options:{ indexAxis:'y', ...defaultOpts(), plugins:{ legend:{display:false}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${fmtR(ctx.raw)}` }}}}
+  });
+}
+
+function renderRanking() {
+  const ranking = getFilteredRanking();
+  const maxV = ranking.length ? ranking[0].valor : 1;
+  document.getElementById('rankingBody').innerHTML = ranking.map((r,i) => `
+    <tr onclick="selectFiscal('${r['Tipo de Fiscal']}','${r.Fiscal}')">
+      <td><span class="rank-num ${i<3?'top3':''}">${i+1}</span></td>
+      <td><span class="fiscal-name">${r.Fiscal}</span></td>
+      <td><span class="tipo-badge tipo-${r['Tipo de Fiscal'].toLowerCase()}">${r['Tipo de Fiscal']}</span></td>
+      <td>${fmtR(r.valor)}</td>
+      <td>${fmtN(r.itens)}</td>
+      <td>${fmtR(r.media_mensal)}/mês</td>
+      <td><span class="bar-mini"><span class="bar-mini-fill" style="width:${r.valor/maxV*100}%;background:${r['Tipo de Fiscal']==='CAMPO'?'var(--teal)':'var(--accent)'}"></span></span> ${r.pct_valor.toFixed(1)}%</td>
+      <td>${r.pct_itens.toFixed(1)}%</td>
+    </tr>`).join('');
+}
+
+function renderDistrib() {
+  const ranking = getFilteredRanking().slice(0, 10);
+  destroyChart('chartDistrib');
+  charts.chartDistrib = new Chart(document.getElementById('chartDistrib'), {
+    type:'doughnut',
+    data:{
+      labels: ranking.map(r=>r.Fiscal.split(' ')[0]),
+      datasets:[{ data: ranking.map(r=>r.valor),
+        backgroundColor: ['#2e85d4','#2ec4b6','#e8a83e','#e05f5f','#4caf7d','#9b59b6','#f39c12','#1abc9c','#e74c3c','#3498db'].map(c=>c+'cc'),
+        borderWidth: 1 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'50%',
+      plugins:{ legend:{ position:'right', labels:{ color:'#8fa8c8', font:{size:10}, boxWidth:10, padding:8 }},
+      tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${fmtR(ctx.raw)} (${ctx.parsed.toFixed(1)}%)` }}}}
+  });
+}
+
+function renderCompare() {
+  const periodo = getActivePeriod();
+  let ac;
+
+  if (periodo) {
+    // Build from fiscal_por_periodo
+    const fp = RAW.fiscal_por_periodo?.[periodo] || {};
+    const admVals   = Object.values(fp).filter(v => v.tipo==='ADM');
+    const campoVals = Object.values(fp).filter(v => v.tipo==='CAMPO');
+    ac = [
+      { 'Tipo de Fiscal':'ADM',   valor: admVals.reduce((s,v)=>s+v.valor,0),
+        itens: admVals.reduce((s,v)=>s+v.itens,0), fiscais: admVals.length, obras: admVals.length },
+      { 'Tipo de Fiscal':'CAMPO', valor: campoVals.reduce((s,v)=>s+v.valor,0),
+        itens: campoVals.reduce((s,v)=>s+v.itens,0), fiscais: campoVals.length, obras: campoVals.length },
+    ];
+  } else {
+    // Use filtered totals
+    const { adm, campo } = getFilteredTotal();
+    const admTotal   = adm.reduce((s,x)=>s+x.valor,0);
+    const campoTotal = campo.reduce((s,x)=>s+x.valor,0);
+    const ranking = getFilteredRanking();
+    const nAdm   = ranking.filter(r=>r['Tipo de Fiscal']==='ADM').length;
+    const nCampo = ranking.filter(r=>r['Tipo de Fiscal']==='CAMPO').length;
+    const rawADM   = RAW.adm_campo.find(x=>x['Tipo de Fiscal']==='ADM')   || {};
+    const rawCampo = RAW.adm_campo.find(x=>x['Tipo de Fiscal']==='CAMPO') || {};
+    ac = [
+      { 'Tipo de Fiscal':'ADM',   valor: admTotal,   itens: rawADM.itens||0,   fiscais: nAdm,   obras: rawADM.obras||0 },
+      { 'Tipo de Fiscal':'CAMPO', valor: campoTotal, itens: rawCampo.itens||0, fiscais: nCampo, obras: rawCampo.obras||0 },
+    ];
+  }
+
+  const totalGeral = ac.reduce((s,d)=>s+d.valor,0);
+  document.getElementById('compareCards').innerHTML = ac.map(d => {
+    const cor = d['Tipo de Fiscal']==='ADM' ? 'var(--accent)' : 'var(--teal)';
+    const bg  = d['Tipo de Fiscal']==='ADM' ? 'rgba(46,133,212,0.06)' : 'rgba(46,196,182,0.06)';
+    const bd  = d['Tipo de Fiscal']==='ADM' ? 'rgba(46,133,212,0.2)'  : 'rgba(46,196,182,0.2)';
+    return `<div style="background:${bg};border:1px solid ${bd};border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${cor};display:inline-block"></span>
+        <span style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:${cor}">${d['Tipo de Fiscal']}</span>
+        <span style="font-size:0.75rem;color:var(--text3)">${d.fiscais} fiscais</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Valor Total</div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text)">${fmtR(d.valor)}</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">% Faturamento</div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:${cor}">${fmtPct(totalGeral?d.valor/totalGeral*100:0)}</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Média Mensal/Fiscal ★</div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:${cor}">${d['Tipo de Fiscal']==='CAMPO'?'R$ 59,5K':'R$ 11,7K'}</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Total de Itens</div><div style="font-size:0.88rem;color:var(--text2)">${fmtN(d.itens)}</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Obras/Fiscaliz.</div><div style="font-size:0.88rem;color:var(--text2)">${fmtN(d.obras)}</div></div>
+        <div><div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Itens/Fiscal</div><div style="font-size:0.88rem;color:var(--text2)">${fmtN(d.fiscais?d.itens/d.fiscais:0)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ---- CAPACITY PANEL DATA ----
+const CAP_ADM = [
+  // Apenas fiscais ADM ATIVOS com histórico mensurável
+  { name:'Marcos Eberth',     piso: 3964, mediana:11283, media:24690, meses:24 },
+  { name:'Fran Carneiro',     piso:11121, mediana:17863, media:17863, meses:17 },
+  { name:'Ana Vilma',         piso:12172, mediana:17589, media:17589, meses:12 },
+  { name:'Christiano Lobão',  piso:12403, mediana:16998, media:16998, meses:16 },
+  { name:'Mikaelly Oliveira', piso: 2668, mediana:13536, media:13536, meses:12 },
+  { name:'Rafael Pereira',    piso: 4248, mediana:11860, media:11860, meses:16 },
+  { name:'Sarah Cardoso',     piso: 4690, mediana:10295, media:10295, meses:21 },
+  { name:'Fabrícia Silva',    piso: 5305, mediana:10004, media:10004, meses:25 },
+  { name:'Ednara Nogueira',   piso:18984, mediana:22629, media:22629, meses:3  },
+  { name:'João Marcos',       piso: 6900, mediana:12782, media:12782, meses:4  },
+  // Sem histórico suficiente: Adria Lorena, Cayron Alex, Júlio César, Dheymili
+];
+const CAP_CAMPO = [
+  // Apenas fiscais CAMPO ATIVOS
+  { name:'José Mesquita',  piso:63730, mediana:84253, media:84253, meses:24 },
+  { name:'Jean Loredo',    piso:37278, mediana:69510, media:69510, meses:26 },
+  { name:'Edson Silva',    piso:38595, mediana:57473, media:57473, meses:26 },
+  { name:'Messias Filho',  piso:36953, mediana:53626, media:53626, meses:26 },
+  { name:'Bruno Mesquita', piso:39064, mediana:46522, media:46522, meses:25 },
+];
+// mediana e média consolidadas
+
+// =========================================================
+// PRODUTIVIDADE POR FISCAL
+// =========================================================
+let chartFiscalProd = null;
+
+function renderTabelaProdutividade() {
+  function buildTable(data, cor, tbodyId) {
+    document.getElementById(tbodyId).innerHTML = data.map((f, i) => {
+      const a24 = f.anos['2024'], a25 = f.anos['2025'], a26 = f.anos['2026'];
+      const bg = i % 2 === 0 ? '' : 'background:rgba(46,133,212,0.03)';
+      function cell(val, isMedia, cor) {
+        if (!val) return '<td style="text-align:right;padding:6px 4px;color:var(--text3)">—</td>';
+        const txt = isMedia ? `<strong style="color:${cor}">${fmtR(val)}</strong>` : `<span style="color:var(--text2)">${fmtR(val)}</span>`;
+        return `<td style="text-align:right;padding:6px 4px">${txt}</td>`;
+      }
+      return `<tr style="${bg};cursor:pointer" onclick="selectFiscal('${tbodyId==='tabelaCampo'?'CAMPO':'ADM'}','${f.name}')"
+        onmouseover="this.style.background='rgba(46,133,212,0.07)'" onmouseout="this.style.background='${bg?'rgba(46,133,212,0.03)':''}'">
+        <td style="padding:6px 8px;color:var(--text);font-size:0.78rem;white-space:nowrap">${f.name.split(' ')[0]} ${f.name.split(' ')[1]||''}</td>
+        <td style="text-align:right;padding:6px 4px;border-left:1px solid var(--border);color:var(--text2);font-size:0.75rem">${a24.total ? fmtR(a24.total) : '—'}</td>
+        ${cell(a24.media, true, cor)}
+        <td style="text-align:right;padding:6px 4px;border-left:1px solid var(--border);color:var(--text2);font-size:0.75rem">${a25.total ? fmtR(a25.total) : '—'}</td>
+        ${cell(a25.media, true, cor)}
+        <td style="text-align:right;padding:6px 8px;border-left:1px solid var(--border);color:var(--text3);font-size:0.75rem">${a26.total ? fmtR(a26.total) : '—'}</td>
+      </tr>`;
+    }).join('');
+  }
+  buildTable(PROD_ANOS.CAMPO, 'var(--teal)',   'tabelaCampo');
+  buildTable(PROD_ANOS.ADM,   'var(--accent)', 'tabelaAdm');
+}
+
+function updateFiscalSelector() {
+  const tipo = document.getElementById('selTipoFiscal').value;
+  const sel  = document.getElementById('selFiscal');
+  sel.innerHTML = PROD_ANOS[tipo].map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+  renderFiscalChart();
+}
+
+function renderFiscalChart() {
+  const tipo  = document.getElementById('selTipoFiscal').value;
+  const name  = document.getElementById('selFiscal').value;
+  const fiscal = PROD_ANOS[tipo].find(f => f.name === name);
+  if (!fiscal) return;
+
+  const cor   = tipo === 'CAMPO' ? 'rgba(46,196,182,0.75)' : 'rgba(46,133,212,0.75)';
+  const corLine = tipo === 'CAMPO' ? '#2ec4b6' : '#2e85d4';
+  const vals  = ALL_MONTHS.map(m => fiscal.serie[m] || 0);
+
+  // médias anuais como linhas de referência
+  const mediaAnual = {};
+  ['2024','2025','2026'].forEach(ano => {
+    const a = fiscal.anos[ano];
+    mediaAnual[ano] = a && a.media ? a.media : null;
+  });
+
+  // KPIs
+  document.getElementById('fiscalKpis').innerHTML = [
+    { l:'Média 2024', v: fiscal.anos['2024'].media ? fmtR(fiscal.anos['2024'].media)+'/mês' : '—', c: corLine },
+    { l:'Média 2025', v: fiscal.anos['2025'].media ? fmtR(fiscal.anos['2025'].media)+'/mês' : '—', c: corLine },
+    { l:'2026 (Jan–Fev)', v: fiscal.anos['2026'].total ? fmtR(fiscal.anos['2026'].total) : '—', c: 'var(--gold)' },
+    { l:'Total geral', v: fmtR(fiscal.anos['2024'].total + fiscal.anos['2025'].total + fiscal.anos['2026'].total) },
+  ].map(k => `<div style="background:var(--navy3);border-radius:8px;padding:10px 12px">
+    <div style="font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${k.l}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:${k.c||'var(--text)'}">${k.v}</div>
+  </div>`).join('');
+
+  if (chartFiscalProd) chartFiscalProd.destroy();
+  const monthLabels = ALL_MONTHS.map(m => {
+    const [y, mo] = m.split('-');
+    const n = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    return n[+mo] + '/' + y.slice(2);
+  });
+
+  // linha de média anual por mês
+  const mediaLine = ALL_MONTHS.map(m => {
+    const ano = m.split('-')[0];
+    return mediaAnual[ano] || null;
+  });
+
+  chartFiscalProd = new Chart(document.getElementById('chartFiscalProd'), {
+    type: 'bar',
+    data: {
+      labels: monthLabels,
+      datasets: [
+        { label: 'Produção', data: vals,
+          backgroundColor: vals.map(v => v > 0 ? cor : 'rgba(255,255,255,0.04)'),
+          borderRadius: 3 },
+        { label: 'Média anual', data: mediaLine, type: 'line',
+          borderColor: corLine, borderDash: [4,3], pointRadius: 0,
+          fill: false, borderWidth: 1.5, spanGaps: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8fa8c8', font: { size: 9 }, maxRotation: 45 } },
+        y: { grid: { color: 'rgba(46,133,212,0.08)' }, ticks: { color: '#8fa8c8', font: { size: 10 }, callback: v => fmtR(v) } }
+      },
+      plugins: {
+        legend: { labels: { color: '#8fa8c8', font: { size: 10 }, boxWidth: 10, padding: 8 } },
+        tooltip: { ...tooltipOpts(), callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtR(ctx.raw)}` } }
+      }
+    }
+  });
+}
+
+function selectFiscal(tipo, name) {
+  document.getElementById('selTipoFiscal').value = tipo;
+  updateFiscalSelector();
+  document.getElementById('selFiscal').value = name;
+  renderFiscalChart();
+  document.getElementById('chartFiscalProd').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderCapRanking() { /* não usado mais */ }
+function renderCapBenchmarks() { /* não usado mais */ }
+
+// =========================================================
+// SIMULADOR
+// =========================================================
+let simState = { campo: 5, adm: 14 };
+let simRefAtual = '2024';
+
+const SIM_REFS = {
+  '2024':  { campo: 61593, adm: 18055, campoLabel: '× R$ 61,6K/mês (ref. 2024)',  admLabel: '× R$ 18,1K/mês (ref. 2024)'  },
+  '2025':  { campo: 54040, adm: 11592, campoLabel: '× R$ 54K/mês (ref. 2025)',    admLabel: '× R$ 11,6K/mês (ref. 2025)'  },
+  'geral': { campo: 60387, adm: 13881, campoLabel: '× R$ 60,4K/mês (geral)',      admLabel: '× R$ 13,9K/mês (geral)'      },
+};
+
+function setSimRef(ref) {
+  simRefAtual = ref;
+  ['2024','2025','geral'].forEach(r => {
+    const btn = document.getElementById('simRef' + (r==='geral'?'Geral':r));
+    if (btn) btn.classList.toggle('active', r === ref);
+  });
+  const d = SIM_REFS[ref];
+  const cEl = document.getElementById('simCampoRef');
+  const aEl = document.getElementById('simAdmRef');
+  if (cEl) cEl.textContent = d.campoLabel;
+  if (aEl) aEl.textContent = d.admLabel;
+  updateSim();
+}
+
+function updateSim() {
+  const r = SIM_REFS[simRefAtual] || SIM_REFS['2024'];
+  const c = simState.campo, a = simState.adm;
+  const total = (c * r.campo) + (a * r.adm);
+  const piso  = (c * SIM_REFS['2025'].campo) + (a * SIM_REFS['2025'].adm);
+  document.getElementById('simCampoVal').textContent  = c;
+  document.getElementById('simAdmVal').textContent    = a;
+  document.getElementById('simTotal').textContent     = fmtR(total) + '/mês';
+  document.getElementById('simBreakdown').textContent =
+    `Campo: ${fmtR(c * r.campo)} + ADM: ${fmtR(a * r.adm)}`;
+  document.getElementById('simConserv').textContent   = fmtR(piso) + '/mês';
+  document.getElementById('simAnual').textContent     = fmtR(total * 12) + '/ano';
+}
+
+function adjustSim(tipo, delta) {
+  if (tipo === 'campo') simState.campo = Math.max(0, simState.campo + delta);
+  if (tipo === 'adm')   simState.adm   = Math.max(0, simState.adm   + delta);
+  updateSim();
+}
+
+
+function renderFilterContext() {
+  const el  = document.getElementById('filterContext');
+  const txt = document.getElementById('filterContextText');
+  if (!el || !txt) return;
+  const parts = [];
+  if (activeFilters.ano)    parts.push(`Ano: <strong>${activeFilters.ano}</strong>`);
+  if (activeFilters.mes) {
+    const n = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    parts.push(`Mês: <strong>${n[+activeFilters.mes]}</strong>`);
+  }
+  if (activeFilters.tipo)   parts.push(`Tipo: <strong>${activeFilters.tipo}</strong>`);
+  if (activeFilters.fiscal) parts.push(`Fiscal: <strong>${activeFilters.fiscal}</strong>`);
+  if (activeFilters.obra)   parts.push(`Obra: <strong>${activeFilters.obra}</strong>`);
+  if (parts.length) {
+    txt.innerHTML = '🔍 Filtrado por: ' + parts.join(' · ');
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function renderBenchCards() {
+  const ano    = activeFilters.ano;
+  const fiscal = activeFilters.fiscal;
+  const tipo   = activeFilters.tipo;
+
+  // Se fiscal específico selecionado — mostrar só ele
+  if (fiscal) {
+    const tipoFiscal = ['CAMPO','ADM'].find(t =>
+      PROD_ANOS[t].some(f => f.name === fiscal)) || 'CAMPO';
+    const fd = PROD_ANOS[tipoFiscal].find(f => f.name === fiscal);
+    if (!fd) return;
+    const anosUsar = ano ? [ano] : ['2024','2025','2026'];
+    let totalVal = 0, totalMeses = 0;
+    anosUsar.forEach(a => {
+      const d = fd.anos[a];
+      if (d && d.total > 0) { totalVal += d.total; totalMeses += d.meses; }
+    });
+    const mediaFiscal = totalMeses > 0 ? Math.round(totalVal / totalMeses) : 0;
+    const corFiscal   = tipoFiscal === 'CAMPO' ? 'var(--teal)' : 'var(--accent)';
+    const bgFiscal    = tipoFiscal === 'CAMPO' ? 'rgba(46,196,182,0.08)' : 'rgba(46,133,212,0.08)';
+    const bdFiscal    = tipoFiscal === 'CAMPO' ? 'rgba(46,196,182,0.2)'  : 'rgba(46,133,212,0.2)';
+    const anoLabel    = ano ? `Ano ${ano}` : 'Todos os anos';
+    document.getElementById('benchAnoLabel').textContent = `${fiscal} — ${anoLabel}`;
+    document.getElementById('benchCards').innerHTML = `
+      <div style="background:${bgFiscal};border:1px solid ${bdFiscal};border-radius:8px;padding:18px 20px;grid-column:1/-1;display:flex;align-items:center;gap:32px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">${tipoFiscal} · ${fiscal}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:${corFiscal};line-height:1">${fmtR(mediaFiscal)}<span style="font-size:0.8rem;color:var(--text3)">/mês</span></div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:4px">Média mensal no período · ${totalMeses} meses ativos · Total: ${fmtR(totalVal)}</div>
+        </div>
+        ${['2024','2025','2026'].map(a => {
+          const d = fd.anos[a];
+          if (!d || !d.total) return `<div style="opacity:0.3"><div style="font-size:0.65rem;color:var(--text3);margin-bottom:4px">${a}</div><div style="font-size:0.9rem;color:var(--text3)">Inativo</div></div>`;
+          return `<div><div style="font-size:0.65rem;color:var(--text3);margin-bottom:4px">${a} · ${d.meses}m</div>
+            <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:${corFiscal}">${fmtR(d.media)}/mês</div>
+            <div style="font-size:0.7rem;color:var(--text2)">Total: ${fmtR(d.total)}</div></div>`;
+        }).join('')}
+      </div>`;
+    return;
+  }
+
+  document.getElementById('benchAnoLabel').textContent =
+    ano ? `Ano ${ano}` : 'Todos os anos (Jan/2024–Fev/2026)';
+
+  // Grupo completo — respeitar filtro de tipo
+  function calcGrupo(tipoG) {
+    const fiscais = PROD_ANOS[tipoG];
+    const medias = [];
+    fiscais.forEach(f => {
+      // se filtro de tipo ativo e não bate, pular
+      if (tipo && tipo !== tipoG) return;
+      const anosUsar = ano ? [ano] : ['2024','2025','2026'];
+      const mes = activeFilters.mes; // '1'..'12' or ''
+      let totalVal = 0, totalMeses = 0;
+      if (mes && ano) {
+        // Single month+year: use serie
+        const p = `${ano}-${String(mes).padStart(2,'0')}`;
+        totalVal = f.serie && f.serie[p] ? f.serie[p] : 0;
+        totalMeses = totalVal > 0 ? 1 : 0;
+      } else {
+        anosUsar.forEach(a => {
+          const d = f.anos[a];
+          if (d && d.total > 0) { totalVal += d.total; totalMeses += d.meses; }
+        });
+      }
+      if (totalMeses > 0) medias.push(totalVal / totalMeses);
+    });
+    if (!medias.length) return { piso:0, mediana:0, media:0, teto:0, n:0 };
+    medias.sort((a,b) => a-b);
+    const n = medias.length;
+    const piso    = Math.round(medias[Math.max(0, Math.floor(n*0.10))]);
+    const mediana = n % 2 === 0
+      ? Math.round((medias[n/2-1]+medias[n/2])/2)
+      : Math.round(medias[Math.floor(n/2)]);
+    const media   = Math.round(medias.reduce((s,v)=>s+v,0)/n);
+    const teto    = Math.round(medias[Math.min(n-1, Math.floor(n*0.90))]);
+    return { piso, mediana, media, teto, n };
+  }
+
+  const campo = calcGrupo('CAMPO');
+  const adm   = calcGrupo('ADM');
+  const razao = adm.mediana > 0 ? (campo.mediana / adm.mediana).toFixed(1) : '—';
+
+  function card(label, piso, mediana, media, teto, n, cor, bg, border) {
+    const delta = mediana > 0 ? Math.round((media-mediana)/mediana*100) : 0;
+    const sinal = delta >= 0 ? '+' : '';
+    return `<div style="background:${bg};border:1px solid ${border};border-radius:8px;padding:14px 16px">
+      <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">${label} · <span style="color:var(--text3)">${n} fiscais</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div style="font-size:0.6rem;color:var(--red);margin-bottom:2px">PISO (P10)</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--red)">${fmtR(piso)}</div>
+        </div>
+        <div>
+          <div style="font-size:0.6rem;color:${cor};margin-bottom:2px">MEDIANA ★</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:${cor}">${fmtR(mediana)}</div>
+        </div>
+        <div>
+          <div style="font-size:0.6rem;color:var(--gold);margin-bottom:2px">MÉDIA</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--gold)">${fmtR(media)} <span style="font-size:0.62rem;color:var(--text3)">(${sinal}${delta}%)</span></div>
+        </div>
+        <div>
+          <div style="font-size:0.6rem;color:var(--green);margin-bottom:2px">TETO (P90)</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--green)">${fmtR(teto)}</div>
+        </div>
+      </div>
+      <div style="font-size:0.68rem;color:var(--text3)">Use a mediana para proposta · teto indica potencial</div>
+    </div>`;
+  }
+
+  document.getElementById('benchCards').innerHTML =
+    card('Campo', campo.piso, campo.mediana, campo.media, campo.teto, campo.n,
+         'var(--teal)', 'rgba(46,196,182,0.08)', 'rgba(46,196,182,0.2)') +
+    card('ADM', adm.piso, adm.mediana, adm.media, adm.teto, adm.n,
+         'var(--accent)', 'rgba(46,133,212,0.08)', 'rgba(46,133,212,0.2)') +
+    `<div style="background:rgba(232,168,62,0.08);border:1px solid rgba(232,168,62,0.2);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px">
+      <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Razão Campo / ADM</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--gold)">${razao}×</div>
+      <div style="font-size:0.68rem;color:var(--text3);text-align:center">1 Campo ≈ ${razao} ADMs<br>em valor gerado/mês</div>
+    </div>`;
+}
+
+function renderCapacidade() {
+
+  renderTabelaProdutividade();
+  updateFiscalSelector();
+  updateSim();
+
+  const { t } = getFilteredTotal();
+  const max_ = Math.max(...t.map(x=>x.valor));
+  const mediaHist = t.reduce((s,x)=>s+x.valor,0) / t.length;
+  destroyChart('chartCapacidade');
+  charts.chartCapacidade = new Chart(document.getElementById('chartCapacidade'), {
+    type:'bar',
+    data:{
+      labels: t.map(x => x['MÊS'].slice(0,3) + '/' + x['MÊS'].slice(-2)),
+      datasets:[
+        { label:'Realizado', data:t.map(x=>x.valor), backgroundColor:'rgba(46,133,212,0.7)', borderRadius:3 },
+        { label:'Pico histórico', data:t.map(()=>max_), type:'line', borderColor:'rgba(232,168,62,0.5)', borderDash:[5,4], pointRadius:0, fill:false, borderWidth:1.5 },
+        { label:'Média histórica', data:t.map(()=>mediaHist), type:'line', borderColor:'rgba(76,175,125,0.7)', borderDash:[3,3], pointRadius:0, fill:false, borderWidth:1.5 },
+      ]
+    },
+    options:{ ...defaultOpts(), plugins:{ legend:{...legendOpts()}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtR(ctx.raw)}` }}}}
+  });
+}
+
+function renderHeatmap() {
+  const TOP_FISCAIS = RAW.ranking.slice(0,8).map(r=>r.Fiscal);
+  const months = RAW.monthly_total.map(m=>m['MÊS']);
+  const displayMonths = months.slice(-12);
+
+  // Build values per fiscal/month from ranking data (approx from monthly distribution)
+  // Use per-fiscal monthly data from fiscal_detail where available
+  const vals = {};
+  TOP_FISCAIS.forEach(f => {
+    vals[f] = {};
+    const fd = RAW.fiscal_detail[f];
+    if(fd) fd.by_month.forEach(m => { vals[f][m['MÊS']] = m.itens; });
+  });
+
+  const allVals = Object.values(vals).flatMap(v => Object.values(v)).filter(v=>v>0);
+  const maxV = allVals.length ? Math.max(...allVals) : 1;
+
+  const shortFiscal = f => f.split(' ')[0].substring(0,12);
+  const shortMes = m => m.slice(0,3).toLowerCase() + '/' + m.slice(-2);
+
+  let html = `<table class="heatmap-table"><thead><tr><th></th>${displayMonths.map(m=>`<th>${shortMes(m)}</th>`).join('')}</tr></thead><tbody>`;
+  TOP_FISCAIS.forEach(f => {
+    html += `<tr><td style="color:var(--text2);padding-right:8px;white-space:nowrap;font-size:0.7rem">${shortFiscal(f)}</td>`;
+    displayMonths.forEach(m => {
+      const v = vals[f][m] || 0;
+      const pct = v / maxV;
+      const alpha = 0.1 + pct * 0.85;
+      const color = `rgba(46,133,212,${alpha})`;
+      html += `<td><span class="heat-cell" style="background:${color}" title="${f}: ${fmtN(v)} itens em ${m}">${v > 100 ? fmtNK(v) : v > 0 ? v.toFixed(0) : ''}</span></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('heatmapGrid').innerHTML = html;
+}
+
+// =========================================================
+// TELA 2
+// =========================================================
+function renderKPIsDemanda() {
+  const dem = RAW.demanda_fat;
+  const maxMes = dem.reduce((a,b) => a.itens > b.itens ? a : b);
+  const totalItens = dem.reduce((s,x) => s+x.itens, 0);
+  const mediaItens = totalItens / dem.length;
+  const topItem = RAW.itens_total[0];
+  const kpis = [
+    { label:'Item Mais Executado', value: topItem[0], sub: fmtN(topItem[1]) + ' unidades' },
+    { label:'Mês Pico de Demanda', value: maxMes['MÊS'].slice(0,3).toLowerCase() + '/' + maxMes['MÊS'].slice(-2), sub: fmtN(maxMes.itens) + ' itens' },
+    { label:'Média Mensal de Itens', value: fmtN(mediaItens), sub:'por mês no período' },
+    { label:'Valor Total Gerado', value: fmtR(RAW.kpis.total_valor), sub:'Período completo' },
+    { label:'Ticket Médio por Item', value: fmtR(RAW.kpis.ticket_medio), sub:'Valor ÷ itens executados' },
+    { label:'Maior Tipo de Obra', value: 'MANUTENÇÃO', sub: '17.345 fiscalizações' },
+  ];
+  document.getElementById('kpiDemanda').innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value" style="font-size:1.2rem">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+function renderItemEvol() {
+  const df = RAW.demanda_fat;
+  destroyChart('chartItemEvol');
+  charts.chartItemEvol = new Chart(document.getElementById('chartItemEvol'), {
+    type:'bar',
+    data:{
+      labels: df.map(x => x['MÊS'].slice(0,3) + '/' + x['MÊS'].slice(-2)),
+      datasets:[
+        { label:'Itens Executados', data:df.map(x=>x.itens), backgroundColor:'rgba(46,133,212,0.75)', borderRadius:3, yAxisID:'y' },
+        { label:'Valor (R$)', data:df.map(x=>x.valor), type:'line', borderColor:'#e8a83e', backgroundColor:'transparent', tension:0.4, pointRadius:2, yAxisID:'y1' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        y:{ position:'left', grid:{color:'rgba(46,133,212,0.08)'}, ticks:{color:'#8fa8c8',font:{size:10}} },
+        y1:{ position:'right', grid:{display:false}, ticks:{color:'#e8a83e',font:{size:10}, callback: v => 'R$' + fmtNK(v)} },
+        x:{ grid:{display:false}, ticks:{color:'#8fa8c8',font:{size:9}, maxRotation:45} }
+      },
+      plugins:{ legend:{...legendOpts()}, tooltip:{...tooltipOpts()} }
+    }
+  });
+}
+
+function renderPareto() {
+  const items = RAW.itens_total;
+  const total = items.reduce((s,x) => s+x[1], 0);
+  let cum = 0;
+  const COLORS = ['#2e85d4','#2ec4b6','#e8a83e','#e05f5f','#4caf7d','#9b59b6','#f39c12','#1abc9c','#e74c3c','#3498db'];
+  document.getElementById('paretoList').innerHTML = items.map(([name, val], i) => {
+    cum += val;
+    return `
+      <div class="pareto-item">
+        <span class="pareto-rank">${i+1}</span>
+        <span class="pareto-name">${name}</span>
+        <div class="pareto-bar-wrap"><div class="pareto-bar-fill" style="width:${val/items[0][1]*100}%;background:${COLORS[i%COLORS.length]}"></div></div>
+        <span class="pareto-val">${fmtN(val)}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderDemFat() {
+  const df = RAW.demanda_fat;
+  destroyChart('chartDemFat');
+  charts.chartDemFat = new Chart(document.getElementById('chartDemFat'), {
+    type:'scatter',
+    data:{
+      datasets:[{ label:'Mês', data:df.map(x=>({x:x.itens, y:x.valor, mes:x['MÊS']})),
+        backgroundColor:'rgba(46,133,212,0.7)', pointRadius:5 }]
+    },
+    options:{ ...defaultOpts(), plugins:{ tooltip:{...tooltipOpts(), callbacks:{ label: ctx => `${ctx.raw.mes}: ${fmtN(ctx.raw.x)} itens → ${fmtR(ctx.raw.y)}` }}}}
+  });
+}
+
+function renderDemObra() {
+  const data = RAW.obra_resumo;
+  destroyChart('chartDemObra');
+  charts.chartDemObra = new Chart(document.getElementById('chartDemObra'), {
+    type:'polarArea',
+    data:{
+      labels:data.map(x=>x.Area),
+      datasets:[{ data:data.map(x=>x.obras), backgroundColor:['rgba(46,133,212,0.7)','rgba(46,196,182,0.7)','rgba(232,168,62,0.7)','rgba(224,95,95,0.7)','rgba(76,175,125,0.7)'] }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ r:{ grid:{color:'rgba(46,133,212,0.1)'}, ticks:{color:'#8fa8c8',font:{size:9}} }},
+      plugins:{ legend:{ position:'bottom', labels:{color:'#8fa8c8',font:{size:10},boxWidth:10,padding:6}}, tooltip:{...tooltipOpts()} }
+    }
+  });
+}
+
+function renderTendencia() {
+  const df = RAW.demanda_fat;
+  // Simple moving average
+  const ma3 = df.map((x,i) => { const slice = df.slice(Math.max(0,i-2),i+1); return slice.reduce((s,y)=>s+y.valor,0)/slice.length; });
+  destroyChart('chartTendencia');
+  charts.chartTendencia = new Chart(document.getElementById('chartTendencia'), {
+    type:'line',
+    data:{
+      labels: df.map(x => x['MÊS'].slice(0,3) + '/' + x['MÊS'].slice(-2)),
+      datasets:[
+        { label:'Valor Mensal', data:df.map(x=>x.valor), borderColor:'rgba(46,133,212,0.5)', backgroundColor:'rgba(46,133,212,0.05)', tension:0.3, fill:true, pointRadius:2 },
+        { label:'Tendência (MA3)', data:ma3, borderColor:'#e8a83e', backgroundColor:'transparent', tension:0.5, borderWidth:2, pointRadius:0 }
+      ]
+    },
+    options:{ ...defaultOpts(), plugins:{ legend:{...legendOpts()}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtR(ctx.raw)}` }}}}
+  });
+}
+
+function renderAnalises() {
+  const total = RAW.kpis.total_valor;
+  const campo = RAW.adm_campo.find(x=>x['Tipo de Fiscal']==='CAMPO');
+  const adm = RAW.adm_campo.find(x=>x['Tipo de Fiscal']==='ADM');
+  const topFiscal = RAW.ranking[0];
+  const df = RAW.demanda_fat;
+  const lastVal = df[df.length-1].valor;
+  const firstVal = df[0].valor;
+  const crescimento = ((lastVal - firstVal) / firstVal * 100).toFixed(1);
+  const mediaAnual = df.reduce((s,x)=>s+x.valor,0)/df.length*12;
+
+  const analises = [
+    { icon:'⚡', color:'var(--gold)', title:'Concentração de Faturamento', text:`Os 3 principais fiscais (Campo) respondem por ${(RAW.ranking.slice(0,3).reduce((s,r)=>s+r.pct_valor,0)).toFixed(1)}% do faturamento total. Alta dependência operacional.` },
+    { icon:'📈', color:'var(--green)', title:'Tendência de Crescimento', text:`Crescimento de ${crescimento}% no período Jan/2024–Nov/2025. Projeção anual estimada em ${fmtR(mediaAnual)}.` },
+    { icon:'⚖️', color:'var(--accent)', title:'Desequilíbrio ADM × Campo', text:`Campo com ${campo.fiscais} fiscais gera ${fmtPct(campo.valor/total*100)} do valor. ADM com ${adm.fiscais} fiscais gera apenas ${fmtPct(adm.valor/total*100)}. Oportunidade de rebalancear.` },
+    { icon:'🎯', color:'var(--teal)', title:'Item Crítico: Ponto + As Built', text:`"Ponto" e "As Built" somam ${fmtPct((RAW.itens_total[0][1]+RAW.itens_total[1][1])/RAW.kpis.total_itens*100)} de todos os itens. São o core operacional da equipe.` },
+    { icon:'⚠️', color:'var(--red)', title:'Risco de Sobrecarga', text:`${topFiscal.Fiscal} concentra ${topFiscal.pct_valor.toFixed(1)}% do faturamento sozinho. Ausência deste fiscal impacta fortemente a operação.` },
+    { icon:'🔧', color:'var(--gold)', title:'Capacidade de Escala', text:`Pico histórico de ${fmtR(Math.max(...df.map(x=>x.valor)))} em um único mês. Capacidade máxima identificada como referência de escala.` },
+  ];
+  document.getElementById('analiseGrid').innerHTML = analises.map(a => `
+    <div class="chart-card" style="border-left: 3px solid ${a.color}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:1.3rem">${a.icon}</span>
+        <span style="font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;color:${a.color}">${a.title}</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text2);line-height:1.5">${a.text}</div>
+    </div>`).join('');
+}
+
+// =========================================================
+// MODAL
+// =========================================================
+function openFiscalModal(fiscalName) {
+  const fd = RAW.fiscal_detail[fiscalName];
+  const r = RAW.ranking.find(x=>x.Fiscal===fiscalName);
+  if (!r) return;
+  document.getElementById('modalTitle').textContent = fiscalName;
+  document.getElementById('modalSub').textContent = `${r['Tipo de Fiscal']} · ${r.meses} meses de dados · Rank #${RAW.ranking.indexOf(r)+1} no ranking geral`;
+  document.getElementById('modalKpis').innerHTML = [
+    { l:'Valor Total', v: fmtR(r.valor) },
+    { l:'Total de Itens', v: fmtN(r.itens) },
+    { l:'Média Mensal', v: fmtR(r.media_mensal) },
+    { l:'% Faturamento', v: fmtPct(r.pct_valor) },
+    { l:'% Produção', v: fmtPct(r.pct_itens) },
+    { l:'Eficiência (R$/item)', v: fmtR(r.valor/r.itens) },
+  ].map(x => `<div class="modal-kpi"><div class="modal-kpi-label">${x.l}</div><div class="modal-kpi-val">${x.v}</div></div>`).join('');
+
+  if (modalChartLine) { modalChartLine.destroy(); }
+  if (modalChartBar) { modalChartBar.destroy(); }
+
+  if (fd) {
+    modalChartLine = new Chart(document.getElementById('modalChartLine'), {
+      type:'line',
+      data:{ labels:fd.by_month.map(m=>m['MÊS'].slice(0,3)+'/'+m['MÊS'].slice(-2)), datasets:[
+        { label:'Valor', data:fd.by_month.map(m=>m.valor), borderColor:'#2e85d4', tension:0.4, fill:false, pointRadius:3 }
+      ]},
+      options:{ ...defaultOpts(), plugins:{ legend:{display:false}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => fmtR(ctx.raw) }}}}
+    });
+    modalChartBar = new Chart(document.getElementById('modalChartBar'), {
+      type:'bar',
+      data:{ labels:fd.by_obra.map(x=>x.Area), datasets:[
+        { label:'R$', data:fd.by_obra.map(x=>x.valor), backgroundColor:['rgba(46,133,212,0.8)','rgba(46,196,182,0.8)','rgba(232,168,62,0.8)','rgba(224,95,95,0.8)'], borderRadius:4 }
+      ]},
+      options:{ ...defaultOpts(), plugins:{ legend:{display:false}, tooltip:{...tooltipOpts(), callbacks:{ label: ctx => fmtR(ctx.raw) }}}}
+    });
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) { if (e.target.id === 'modalOverlay') closeModalBtn(); }
+function closeModalBtn() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+// =========================================================
+// HELPERS
+// =========================================================
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+const fmtR = v => 'R$ ' + (v >= 1e6 ? (v/1e6).toFixed(2) + 'M' : v >= 1e3 ? (v/1e3).toFixed(1) + 'K' : v.toFixed(0));
+const fmtN = v => v >= 1e6 ? (v/1e6).toFixed(2)+'M' : v >= 1e3 ? (v/1e3).toFixed(1)+'K' : Math.round(v).toString();
+const fmtNK = v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v.toFixed(0);
+const fmtPct = v => v.toFixed(1) + '%';
+
+function defaultOpts() {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    scales:{ x:{grid:{color:'rgba(46,133,212,0.06)'},ticks:{color:'#8fa8c8',font:{size:9},maxRotation:45}}, y:{grid:{color:'rgba(46,133,212,0.08)'},ticks:{color:'#8fa8c8',font:{size:10}}} }
+  };
+}
+function legendOpts() { return { labels:{color:'#8fa8c8',font:{size:10},boxWidth:10,padding:8} }; }
+function tooltipOpts() {
+  return { backgroundColor:'rgba(13,27,46,0.95)', borderColor:'rgba(46,133,212,0.3)', borderWidth:1, titleColor:'#f0f4fa', bodyColor:'#8fa8c8', padding:10, cornerRadius:6 };
+}
+
+// =========================================================
+//
+// NAVIGATION
+// =========================================================
+function switchScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'tela1') renderAll();
+  if (id === 'tela3') renderTela3();
+  if (id === 'tela4') renderTela4();
+}
+
+
+const ACRE_DATA = {
+  months: ['May/26','Jun/26','Jul/26','Aug/26','Sep/26','Oct/26','Nov/26','Dec/26','Jan/27','Feb/27','Mar/27','Apr/27','May/27','Jun/27','Jul/27','Aug/27','Sep/27','Oct/27','Nov/27','Dec/27','Jan/28','Feb/28','Mar/28','Apr/28','May/28','Jun/28'],
+  monthly: [19844,152998,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,288733,272616,142085],
+  totalFat: 6939672,
+  saldo: 725623488.0,
+  duracao: 26,
+  nStaff: 23,
+  nAdm: 20,
+  nCampo: 3,
+  nConfirmados: 13,
+  admMes: 229844,
+  campoMes: 32479,
+  totalMes: 262323,
+};
+
+const TOC_DATA = {
+  months: ['May/26','Jun/26','Jul/26','Aug/26','Sep/26','Oct/26','Nov/26','Dec/26','Jan/27','Feb/27','Mar/27','Apr/27','May/27','Jun/27','Jul/27','Aug/27'],
+  monthly: [0,357763,357763,357763,357763,357763,357763,357763,357763,357763,357763,357763,357763,357763,357763,357763],
+  totalFat: 5366447,
+  saldo: 5345836.8,
+  duracao: 16,
+  nStaff: 32,
+  nAdm: 28,
+  nCampo: 4,
+  nConfirmados: 0,
+  admMes: 285181,
+  campoMes: 46772,
+  totalMes: 331953,
+};
+
+function renderTela3() {
+  const ctx = document.getElementById('chartAcreProj');
+  if (!ctx) return;
+  if (window._chartAcre) window._chartAcre.destroy();
+  window._chartAcre = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: ACRE_DATA.months,
+      datasets:[
+        { label:'Faturamento Previsto (REIDI)', data: ACRE_DATA.monthly,
+          backgroundColor: ACRE_DATA.monthly.map(v => v > 200000 ? 'rgba(46,196,182,0.75)' : 'rgba(46,196,182,0.35)'),
+          borderRadius:4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:'#8fa8c8',font:{size:9},maxRotation:45} },
+        y:{ grid:{color:'rgba(46,133,212,0.08)'}, ticks:{color:'#8fa8c8',font:{size:10},
+          callback: v => 'R$'+Math.round(v/1000)+'K'} }
+      },
+      plugins:{
+        legend:{ labels:{color:'#8fa8c8',font:{size:10},boxWidth:10} },
+        tooltip:{ backgroundColor:'rgba(13,27,46,0.95)', titleColor:'#f0f4fa', bodyColor:'#8fa8c8',
+          padding:10, cornerRadius:6,
+          callbacks:{ label: ctx => ' R$ ' + Math.round(ctx.raw).toLocaleString('pt-BR') } }
+      }
+    }
+  });
+}
+
+function renderTela4() {
+  const ctx = document.getElementById('chartTocantinsProj');
+  if (!ctx) return;
+  if (window._chartTocantins) window._chartTocantins.destroy();
+  window._chartTocantins = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: TOC_DATA.months,
+      datasets:[
+        { label:'Faturamento Previsto (REIDI)', data: TOC_DATA.monthly,
+          backgroundColor: TOC_DATA.monthly.map(v => v > 300000 ? 'rgba(232,168,62,0.75)' : 'rgba(232,168,62,0.35)'),
+          borderRadius:4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:'#8fa8c8',font:{size:9},maxRotation:45} },
+        y:{ grid:{color:'rgba(46,133,212,0.08)'}, ticks:{color:'#8fa8c8',font:{size:10},
+          callback: v => 'R$'+Math.round(v/1000)+'K'} }
+      },
+      plugins:{
+        legend:{ labels:{color:'#8fa8c8',font:{size:10},boxWidth:10} },
+        tooltip:{ backgroundColor:'rgba(13,27,46,0.95)', titleColor:'#f0f4fa', bodyColor:'#8fa8c8',
+          padding:10, cornerRadius:6,
+          callbacks:{ label: ctx => ' R$ ' + Math.round(ctx.raw).toLocaleString('pt-BR') } }
+      }
+    }
+  });
+}
+
+
+// =========================================================
+// RENDER ALL
+// =========================================================
+function renderAll() {
+  const screen = document.querySelector('.screen.active').id;
+  if (screen === 'tela3' || screen === 'tela4') return;
+  if (screen === 'tela1') {
+    renderFilterContext();
+    renderKPIs();
+    renderBenchCards();
+    renderEvolucaoMensal();
+    renderRanking();
+    renderCompare();
+    renderCapacidade();
+    renderHeatmap();
+  } else {
+    renderKPIsDemanda();
+    renderItemEvol();
+    renderPareto();
+    renderDemFat();
+    renderDemObra();
+    renderTendencia();
+    renderAnalises();
+  }
+}
+
+// =========================================================
+// INIT
+// =========================================================
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#8fa8c8';
+populateFilters();
+renderAll();
+</script>
+</body>
+</html>
